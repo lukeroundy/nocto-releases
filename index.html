@@ -14,8 +14,8 @@ footer{text-align:center;color:var(--m);font-size:13px;margin-top:64px}
 </style></head><body><main><nav style="display:flex;gap:20px;justify-content:center;margin-bottom:28px"><a href="plugins.html" style="color:var(--v);text-decoration:none">Plugin SDK</a><a href="https://github.com/lukeroundy/nocto-releases/releases" style="color:var(--v);text-decoration:none">Releases</a><a href="https://github.com/lukeroundy/nocto-releases/issues/new/choose" target="_blank" rel="noopener" style="color:var(--v);text-decoration:none">Report a bug</a><a href="https://www.patreon.com/noctoapp" target="_blank" rel="noopener" style="color:var(--v);text-decoration:none">Support on Patreon</a></nav>
 
 <header><img src="assets/logo.png" alt="Nocto moon logo"><h1>Nocto</h1><p class="tag">Record and stream without your frames ever leaving the GPU.</p>
-<a class="btn" id="dl" href="https://github.com/lukeroundy/nocto-releases/releases/download/v0.5.1/Nocto-Setup-0.5.1.exe">Download for Windows</a>
-<p class="small" id="ver">v0.5.1 &middot; Windows 10/11 x64 &middot; <a href="https://github.com/lukeroundy/nocto-releases/releases">all releases</a></p></header>
+<a class="btn" id="dl" href="https://github.com/lukeroundy/nocto-releases/releases/download/v0.5.2/Nocto-Setup-0.5.2.exe">Download for Windows</a>
+<p class="small" id="ver">v0.5.2 &middot; Windows 10/11 x64 &middot; <a href="https://github.com/lukeroundy/nocto-releases/releases">all releases</a></p></header>
 <section class="grid">
 <div class="f"><h3>Zero-copy pipeline</h3><p>Capture, convert and encode on the GPU with NVENC, Intel QSV/Arc and other hardware encoders.</p></div>
 <div class="f"><h3>Anti-cheat safe</h3><p>Windows.Graphics.Capture by default; opt-in game capture for DX9/11/12, OpenGL and Vulkan.</p></div>
@@ -30,6 +30,13 @@ footer{text-align:center;color:var(--m);font-size:13px;margin-top:64px}
 </section>
 <section style="margin-top:56px;background:var(--card);border:1px solid #2a2340;border-radius:16px;padding:24px 28px">
 <h2 style="margin:0 0 8px;color:var(--v)">What's new</h2>
+<h3 style="margin:16px 0 4px">0.5.2: sharp, uncluttered UI at every display scale</h3>
+<ul style="color:var(--m);margin:0">
+<li>Works at every Windows display scale from 100% to 300%, and in small windows</li>
+<li>Text, logo and icons stay sharp at high DPI; Nocto adapts when moved to a monitor with a different scale</li>
+<li>Fixed: stats overlapping the Settings button, overlapping timeline track headers and ruler labels, cut-off editor toolbar and transport buttons</li>
+<li>Settings, mixer, sources, inspector and the multistream list fit their content at every scale</li>
+</ul>
 <h3 style="margin:16px 0 4px">0.5.1: AMD recording fix, log dumps and bug reports</h3>
 <ul style="color:var(--m);margin:0">
 <li>Fixed: on AMD GPUs, recorded video froze after a few seconds while the audio kept going</li>

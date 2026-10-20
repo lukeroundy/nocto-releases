@@ -1,7 +1,7 @@
 {
-  "version": "0.5.1",
-  "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.5.1/Nocto-Setup-0.5.1.exe",
-  "sha256": "3617021106d16da5c6a449dee7d027a6c30bd5b3e3ad0f16827e7f2ea7f8c9fd",
-  "notes": "Nocto 0.5.1: AMD recording fix, log dumps and bug reports\n- Fixed: on AMD GPUs, recorded video froze after a few seconds while audio kept going\n- Encoder watchdog restarts a stalled encoder without stopping the recording\n- AMD encoder tuning for 100+ fps captures\n- Help > Save log dump (stream keys removed) and Help > Report a Bug\n- Fresh installs no longer come with a Twitch destination preset",
+  "version": "0.5.2",
+  "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.5.2/Nocto-Setup-0.5.2.exe",
+  "sha256": "099c0019e2ea8294621c4f2fd097fbeb4f1297a069e23075fc377ee8d8269297",
+  "notes": "Nocto 0.5.2: high-DPI and small-window layout fixes\n- Works at every display scale from 100% to 300% and in small windows\n- Sharp text, logo and icons at high DPI; adapts when moved between monitors\n- Fixed stats under the Settings button, overlapping timeline headers and ruler labels, cut-off editor toolbar and transport\n- Settings, mixer, sources, inspector and multistream list fit at every scale",
   "min_version": "0.0.0"
 }
