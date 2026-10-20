@@ -1,0 +1,7 @@
+{
+  "version": "0.4.0",
+  "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.4.0/Nocto-Setup-0.4.0.exe",
+  "sha256": "189f6b9bee3337f51fa8f6a3b60bd782125e553f067cbe6e6e10806dd0798647",
+  "notes": "Nocto 0.4.0\n- Virtual camera (DirectShow, 32/64-bit apps)\n- Recording pause/resume\n- Plugin SDK (native sources, HLSL shader filters)\n- Replay buffer, multistream, HDR fixes\n- Windows installer and built-in auto-updater",
+  "min_version": "0.0.0"
+}
