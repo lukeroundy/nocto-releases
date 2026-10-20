@@ -1,7 +1,7 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Plugin SDK - Nocto</title><link rel="icon" href="assets/favicon.png"><link rel="stylesheet" href="assets/docs.css"></head><body>
 <header class="top"><a class="brand" href="./"><img src="assets/logo.png" alt="">Nocto</a><nav><a href="./">Home</a><a href="plugins.html" class="on">Plugin SDK</a><a href="https://github.com/lukeroundy/nocto-releases/releases">Releases</a><a href="https://www.patreon.com/noctoapp" target="_blank" rel="noopener">Patreon</a></nav><button id="toc-toggle" aria-label="Contents">&#9776;</button></header>
-<div class="wrap"><aside id="toc"><div class="tt">Contents</div><a href="#overview">Overview</a><a href="#types">Plugin types</a><a href="#abi">ABI & entry points</a><a href="#host">nocto_host</a><a href="#info">nocto_plugin_info</a><a href="#props">Properties & settings UI</a><a href="#source">Sources</a><a href="#vfilter">Video filters</a><a href="#texture">D3D11 texture contract</a><a href="#afilter">Audio filters</a><a href="#audio">Audio buffer format</a><a href="#output">Outputs</a><a href="#hotkey">Hotkey actions</a><a href="#script">Script engine (reserved)</a><a href="#enums">Enums, macros & typedefs</a><a href="#threads">Threading & lifetime</a><a href="#loading">Load paths, enable/disable</a><a href="#crash">Crash handling & limits</a><a href="#shader">Shader-only plugins</a><a href="#first">Build your first plugin</a><a href="#samples">Sample plugins (full source)</a><a href="#debug">Debugging & plugins.log</a><a href="#faq">FAQ</a><a href="#download">Downloads</a></aside><main class="doc">
+<div class="wrap"><aside id="toc"><div class="tt">Contents</div><a href="#overview">Overview</a><a href="#types">Plugin types</a><a href="#abi">ABI & entry points</a><a href="#host">nocto_host</a><a href="#info">nocto_plugin_info</a><a href="#props">Properties & settings UI</a><a href="#source">Sources</a><a href="#vfilter">Video filters</a><a href="#texture">D3D11 texture contract</a><a href="#afilter">Audio filters</a><a href="#audio">Audio buffer format</a><a href="#output">Outputs</a><a href="#hotkey">Hotkey actions</a><a href="#script">Script engine (reserved)</a><a href="#enums">Enums, macros & typedefs</a><a href="#threads">Threading & lifetime</a><a href="#loading">Load paths, enable/disable</a><a href="#crash">Crash handling & limits</a><a href="#shader">Shader-only plugins</a><a href="#editor">Editor effects &amp; keyframes</a><a href="#first">Build your first plugin</a><a href="#samples">Sample plugins (full source)</a><a href="#debug">Debugging & plugins.log</a><a href="#faq">FAQ</a><a href="#download">Downloads</a></aside><main class="doc">
 <section id="overview"><h1>Nocto Plugin SDK</h1>
 <p class="lead">Extend Nocto with native C/C++ DLLs or shader-only filters. ABI version <b>1</b>, Nocto 0.4.0+.</p>
 <div class="dl"><a class="btn" href="sdk/nocto-plugin-sdk-1.0.zip">Download SDK (zip)</a> <a class="btn ghost" href="sdk/nocto_plugin.h" download>nocto_plugin.h</a></div>
@@ -270,6 +270,33 @@ float4 main(float4 pos : SV_Position, float2 uv : TEXCOORD0) : SV_Target {
 }</code></pre>
 <p>Copy both files into <code>%LOCALAPPDATA%\Nocto\plugins</code>, restart Nocto (or enable it), then add <i>Vignette (sample shader)</i> from a source's Filters.</p></section>
 
+<section id="editor"><h2>Editor effects, keyframes &amp; masks</h2>
+<p>Since 0.5.0 the video editor has a GPU effect stack per clip (Inspector &gt; <i>Effects (GPU)</i>). Built-in effects and plugin video filters use <b>one parameter model</b>: the same <code>{id, label, type, default, min, max}</code> entries as a shader-only manifest. Every loaded plugin video filter (shader-only <i>or</i> DLL) appears in the editor's <b>+ Add effect &gt; Plugins</b> menu automatically, with no extra code.</p>
+<h3>What the editor adds on top of your filter</h3>
+<ul>
+<li><b>Keyframes on every param.</b> Each param row has a keyframe diamond: click to add or remove a key at the playhead, right-click for <i>Linear</i>, <i>Ease in/out</i> or <i>Hold</i> and to jump to the previous or next key. Keys are drawn on the selected clip in the timeline, where you can drag them to retime. Nocto evaluates the curve on the CPU each frame and passes the value through <code>PARAM(i)</code> (DLL filters receive it in <code>values[i]</code>). <code>color</code> params interpolate per channel.</li>
+<li><b>Masks.</b> Any effect can be limited to a rectangle or ellipse (centre, size, feather, rotation, invert; all keyframable). The host renders your filter, then blends <code>lerp(input, yourOutput, mask)</code>. Your shader doesn't need any mask code.</li>
+<li><b>Deterministic time.</b> In the editor <code>TIME</code> (and the <code>t</code> argument of DLL <code>process</code>) is <b>clip-local seconds</b>, so previews and exports match frame for frame. On live sources it stays the app clock.</li>
+<li><b>Stack order.</b> Effects run top to bottom at the clip's native resolution, before transform/crop/opacity and transitions are applied on the canvas.</li>
+</ul>
+<h3>Built-in effects (same model)</h3>
+<table><tr><th>Key</th><th>Name</th><th>Params (id: default [min..max])</th></tr>
+<tr><td><code>nocto.color</code></td><td>Color Correction</td><td>exposure 0 [-4..4] stops, contrast 0, saturation 1 [0..2], temperature 0, tint 0, lift 0, gamma 1, gain 1</td></tr>
+<tr><td><code>nocto.curves</code></td><td>Curves</td><td>black 0, shadows .25, mids .5, highlights .75, white 1 (output level at 0/25/50/75/100% input, Catmull-Rom), red/green/blue 0 [-0.5..0.5]</td></tr>
+<tr><td><code>nocto.lut</code></td><td>LUT (.cube)</td><td>intensity 1. Loads a 3D <code>.cube</code> (2..256 points, trilinear on the GPU)</td></tr>
+<tr><td><code>nocto.blur</code></td><td>Gaussian Blur</td><td>radius 8 px [0..100] (separable, 2 passes, alpha-correct)</td></tr>
+<tr><td><code>nocto.sharpen</code></td><td>Sharpen</td><td>amount .6 [0..3], radius 1 px</td></tr>
+<tr><td><code>nocto.vignette</code></td><td>Vignette</td><td>amount .5, size .75, softness .5</td></tr>
+<tr><td><code>nocto.grain</code></td><td>Film Grain</td><td>amount .15, size 1.5 px, color 0 (24 fps animated)</td></tr>
+<tr><td><code>nocto.chromakey</code></td><td>Chroma Key</td><td>key 0 green / 1 blue (int), similarity .4, smoothness .08, spill suppression .5</td></tr>
+<tr><td><code>nocto.invert</code></td><td>Invert</td><td>amount 1</td></tr></table>
+<p>Clips also have <b>Transform &amp; crop</b> (position X/Y px, scale, rotation deg, opacity, crop L/T/R/B 0..1) and <b>Speed</b> (0.1..8x, keyframable for speed ramps; audio is pitch-preserved via WSOLA or muted). Title clips (DirectWrite text with outline and shadow) and shape clips (rectangle/ellipse with corner radius and outline) use the same keyframable params. Transitions between overlapping clips: crossfade, dip to black, wipe, slide and zoom. Add more video tracks to use them as picture-in-picture overlays.</p>
+<h3>Built-in shader header</h3>
+<p>Built-ins compile with the plugin header above plus two extras. Plugins don't get these: <code>#define PASS (noctoInfo.w)</code> (multi-pass effects) and <code>Texture3D lut3d : register(t1)</code>. If you write your own effect and need more than one pass, chain two plugin filters.</p>
+<h3>Project file</h3>
+<p>Effects are saved in the <code>.gprproj</code> JSON per clip as <code>{"id","key","enabled","params":[{"id","v","keys":[{"t","v","interp"}]}],"path","maskShape","maskInvert","mask":[...]}</code>. <code>t</code> is clip-local seconds and <code>interp</code> is 0 linear, 1 ease, 2 hold. Params are matched by <code>id</code>, so adding params to your manifest later keeps old projects working: missing ids use your <code>default</code>.</p>
+</section>
+
 <section id="first"><h2>Build your first plugin (CMake + MSVC)</h2>
 <ol><li>Install <b>Visual Studio 2022</b> or <b>Build Tools 2022</b> with "Desktop development with C++" (includes the Windows SDK) and <b>CMake 3.20+</b>.</li>
 <li>Download and unzip <a href="sdk/nocto-plugin-sdk-1.0.zip">nocto-plugin-sdk-1.0.zip</a>:
@@ -504,7 +531,7 @@ extern &quot;C&quot; NOCTO_EXPORT int nocto_plugin_load(const nocto_host* host, 
     return 1;
 }
 extern &quot;C&quot; NOCTO_EXPORT void nocto_plugin_unload(void) { g_host = nullptr; }</code></pre>
-<h3>Vignette (shader-only)</h3><p>See <a href="#shader">Shader-only plugins</a> for the full manifest and HLSL.</p></section>
+<h3>Vignette (shader-only)</h3><p>See <a href="#shader">Shader-only plugins</a><a href="#editor">Editor effects &amp; keyframes</a> for the full manifest and HLSL.</p></section>
 
 <section id="debug"><h2>Debugging tips & plugins.log</h2>
 <ul><li><b>Log</b>: <code>%LOCALAPPDATA%\Nocto\plugins.log</code> (append-only) and the bottom of File &rsaquo; Plugins&hellip; (last 500 lines). Typical lines:

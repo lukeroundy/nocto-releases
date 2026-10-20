@@ -1,7 +1,7 @@
 {
-  "version": "0.4.1",
-  "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.4.1/Nocto-Setup-0.4.1.exe",
-  "sha256": "31f90dd71fd5d8767820091a1fa4766c77f2b3bedbe59bf705289d58b1f183a4",
-  "notes": "Nocto 0.4.1\n- Editor button next to Stream, plus a Record/Editor workspace hotkey\n- Fixed Window Capture with duplicate window titles (PID shown for duplicates)\n- Fixed ImGui conflicting-ID errors across the UI\n- Support Nocto on Patreon (Help menu and About)",
+  "version": "0.5.0",
+  "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.5.0/Nocto-Setup-0.5.0.exe",
+  "sha256": "005a853bc44887ca674f35a5f63d5903d80f8289ef1d182ad596963ea5c91c38",
+  "notes": "Nocto 0.5.0: editor effects\n- GPU effects: color correction, curves, .cube LUTs, blur, sharpen, vignette, film grain, chroma key\n- Keyframes on every parameter (linear/ease/hold) and masks on any effect\n- Transform & crop, transitions (crossfade, dip, wipe, slide, zoom)\n- Speed ramps with pitch-preserved audio, titles, shapes, picture-in-picture tracks\n- Plugin video filters work as editor effects",
   "min_version": "0.0.0"
 }
