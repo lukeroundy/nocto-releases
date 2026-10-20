@@ -1,0 +1,69 @@
+name: Bug report
+description: Something in Nocto doesn't work right
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! The fastest way to get a fix is a **log dump**: in Nocto open **Help > Save log dump...**, then drag the zip into the "Log dump" box below.
+        The dump contains logs, GPU/driver info and your settings, with stream keys, tokens and passwords removed. Please don't paste stream keys anywhere in this form.
+  - type: input
+    id: version
+    attributes:
+      label: Nocto version
+      description: Help > About Nocto
+      placeholder: "0.5.1"
+    validations:
+      required: true
+  - type: input
+    id: gpu
+    attributes:
+      label: GPU and driver version
+      placeholder: "AMD Radeon RX 7800 XT, Adrenalin 25.9.1"
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Windows version
+      placeholder: "Windows 11 24H2"
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options: [Recording, Streaming, Replay buffer, Game capture, Browser source, Audio, Editor, Virtual camera, Plugins, Installer / updates, Other]
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Add a Game Capture of ...
+        2. Start recording (HEVC, 1440p 120 fps)
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Screenshots or a short clip help too.
+    validations:
+      required: true
+  - type: textarea
+    id: logdump
+    attributes:
+      label: Log dump
+      description: Use Help > Save log dump... in Nocto and drag the .zip here (on the Desktop by default).
+      placeholder: Drag Nocto-logs-*.zip here
+    validations:
+      required: false

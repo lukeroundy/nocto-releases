@@ -11,11 +11,11 @@ header img{width:140px;filter:drop-shadow(0 0 32px #7c3aed88)}h1{font-size:56px;
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:64px}
 .f{background:var(--card);border:1px solid #2a2340;border-radius:16px;padding:20px}.f h3{margin:0 0 6px;color:var(--v)}.f p{margin:0;color:var(--m)}
 footer{text-align:center;color:var(--m);font-size:13px;margin-top:64px}
-</style></head><body><main><nav style="display:flex;gap:20px;justify-content:center;margin-bottom:28px"><a href="plugins.html" style="color:var(--v);text-decoration:none">Plugin SDK</a><a href="https://github.com/lukeroundy/nocto-releases/releases" style="color:var(--v);text-decoration:none">Releases</a><a href="https://www.patreon.com/noctoapp" target="_blank" rel="noopener" style="color:var(--v);text-decoration:none">Support on Patreon</a></nav>
+</style></head><body><main><nav style="display:flex;gap:20px;justify-content:center;margin-bottom:28px"><a href="plugins.html" style="color:var(--v);text-decoration:none">Plugin SDK</a><a href="https://github.com/lukeroundy/nocto-releases/releases" style="color:var(--v);text-decoration:none">Releases</a><a href="https://github.com/lukeroundy/nocto-releases/issues/new/choose" target="_blank" rel="noopener" style="color:var(--v);text-decoration:none">Report a bug</a><a href="https://www.patreon.com/noctoapp" target="_blank" rel="noopener" style="color:var(--v);text-decoration:none">Support on Patreon</a></nav>
 
 <header><img src="assets/logo.png" alt="Nocto moon logo"><h1>Nocto</h1><p class="tag">Record and stream without your frames ever leaving the GPU.</p>
-<a class="btn" id="dl" href="https://github.com/lukeroundy/nocto-releases/releases/download/v0.5.0/Nocto-Setup-0.5.0.exe">Download for Windows</a>
-<p class="small" id="ver">v0.5.0 &middot; Windows 10/11 x64 &middot; <a href="https://github.com/lukeroundy/nocto-releases/releases">all releases</a></p></header>
+<a class="btn" id="dl" href="https://github.com/lukeroundy/nocto-releases/releases/download/v0.5.1/Nocto-Setup-0.5.1.exe">Download for Windows</a>
+<p class="small" id="ver">v0.5.1 &middot; Windows 10/11 x64 &middot; <a href="https://github.com/lukeroundy/nocto-releases/releases">all releases</a></p></header>
 <section class="grid">
 <div class="f"><h3>Zero-copy pipeline</h3><p>Capture, convert and encode on the GPU with NVENC, Intel QSV/Arc and other hardware encoders.</p></div>
 <div class="f"><h3>Anti-cheat safe</h3><p>Windows.Graphics.Capture by default; opt-in game capture for DX9/11/12, OpenGL and Vulkan.</p></div>
@@ -30,6 +30,16 @@ footer{text-align:center;color:var(--m);font-size:13px;margin-top:64px}
 </section>
 <section style="margin-top:56px;background:var(--card);border:1px solid #2a2340;border-radius:16px;padding:24px 28px">
 <h2 style="margin:0 0 8px;color:var(--v)">What's new</h2>
+<h3 style="margin:16px 0 4px">0.5.1: AMD recording fix, log dumps and bug reports</h3>
+<ul style="color:var(--m);margin:0">
+<li>Fixed: on AMD GPUs, recorded video froze after a few seconds while the audio kept going</li>
+<li>Encoder watchdog: a stalled hardware encoder is restarted without stopping the recording, and audio stays in sync</li>
+<li>AMD encoder tuning: low latency, no B-frames, and a quality cap so 100+ fps captures keep up</li>
+<li>Help &gt; Save log dump: one zip with logs, system and GPU info, stats and redacted settings (no stream keys)</li>
+<li>Help &gt; Report a Bug opens the <a style="color:var(--v)" href="https://github.com/lukeroundy/nocto-releases/issues/new/choose">GitHub issue form</a></li>
+<li>Fresh installs no longer come with a Twitch destination preset</li>
+<li>Rotating logs and an encoder lag display in the Performance panel</li>
+</ul>
 <h3 style="margin:16px 0 4px">0.5.0: editor effects</h3>
 <ul style="color:var(--m);margin:0">
 <li>GPU effect stack per clip: Color Correction (exposure, contrast, saturation, temperature/tint, lift/gamma/gain), Curves, .cube LUTs, Gaussian Blur, Sharpen, Vignette, Film Grain, Chroma Key with spill suppression, Invert</li>
@@ -49,7 +59,7 @@ footer{text-align:center;color:var(--m);font-size:13px;margin-top:64px}
 <h2 style="margin:0 0 8px;color:var(--v)">Support Nocto</h2>
 <p style="color:var(--m);margin:0 0 18px">Nocto is built by one developer. If it saves you time or makes your streams better, you can help keep it going.</p>
 <a class="btn" href="https://www.patreon.com/noctoapp" target="_blank" rel="noopener">Support on Patreon</a></section>
-<footer>Nocto &copy; 2026 Luke Roundy &middot; Updates are delivered in-app and always verified by SHA-256. &middot; <a style="color:var(--v)" href="https://www.patreon.com/noctoapp" target="_blank" rel="noopener">Support on Patreon</a></footer>
+<footer>Nocto &copy; 2026 Luke Roundy &middot; Updates are delivered in-app and always verified by SHA-256. &middot; <a style="color:var(--v)" href="https://github.com/lukeroundy/nocto-releases/issues/new/choose">Report a bug</a> &middot; <a style="color:var(--v)" href="https://www.patreon.com/noctoapp" target="_blank" rel="noopener">Support on Patreon</a></footer>
 </main><script>
 fetch('latest.json').then(r=>r.json()).then(j=>{dl.href=j.url;ver.firstChild.textContent='v'+j.version+' \u00b7 Windows 10/11 x64 \u00b7 '}).catch(()=>{});
 </script></body></html>

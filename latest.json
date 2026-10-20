@@ -1,7 +1,7 @@
 {
-  "version": "0.5.0",
-  "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.5.0/Nocto-Setup-0.5.0.exe",
-  "sha256": "005a853bc44887ca674f35a5f63d5903d80f8289ef1d182ad596963ea5c91c38",
-  "notes": "Nocto 0.5.0: editor effects\n- GPU effects: color correction, curves, .cube LUTs, blur, sharpen, vignette, film grain, chroma key\n- Keyframes on every parameter (linear/ease/hold) and masks on any effect\n- Transform & crop, transitions (crossfade, dip, wipe, slide, zoom)\n- Speed ramps with pitch-preserved audio, titles, shapes, picture-in-picture tracks\n- Plugin video filters work as editor effects",
+  "version": "0.5.1",
+  "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.5.1/Nocto-Setup-0.5.1.exe",
+  "sha256": "3617021106d16da5c6a449dee7d027a6c30bd5b3e3ad0f16827e7f2ea7f8c9fd",
+  "notes": "Nocto 0.5.1: AMD recording fix, log dumps and bug reports\n- Fixed: on AMD GPUs, recorded video froze after a few seconds while audio kept going\n- Encoder watchdog restarts a stalled encoder without stopping the recording\n- AMD encoder tuning for 100+ fps captures\n- Help > Save log dump (stream keys removed) and Help > Report a Bug\n- Fresh installs no longer come with a Twitch destination preset",
   "min_version": "0.0.0"
 }

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Feature ideas and voting
+    url: https://www.patreon.com/noctoapp
+    about: Voter and Champion supporters vote on what gets built next.
+  - name: Plugin SDK documentation
+    url: https://lukeroundy.github.io/nocto-releases/plugins.html
+    about: How to write Nocto plugins.
