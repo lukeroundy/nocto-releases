@@ -1,6 +1,6 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Plugin SDK - Nocto</title><link rel="icon" href="assets/favicon.png"><link rel="stylesheet" href="assets/docs.css"></head><body>
-<header class="top"><a class="brand" href="./"><img src="assets/logo.png" alt="">Nocto</a><nav><a href="./">Home</a><a href="plugins.html" class="on">Plugin SDK</a><a href="https://github.com/lukeroundy/nocto-releases/releases">Releases</a></nav><button id="toc-toggle" aria-label="Contents">&#9776;</button></header>
+<header class="top"><a class="brand" href="./"><img src="assets/logo.png" alt="">Nocto</a><nav><a href="./">Home</a><a href="plugins.html" class="on">Plugin SDK</a><a href="https://github.com/lukeroundy/nocto-releases/releases">Releases</a><a href="https://www.patreon.com/noctoapp" target="_blank" rel="noopener">Patreon</a></nav><button id="toc-toggle" aria-label="Contents">&#9776;</button></header>
 <div class="wrap"><aside id="toc"><div class="tt">Contents</div><a href="#overview">Overview</a><a href="#types">Plugin types</a><a href="#abi">ABI & entry points</a><a href="#host">nocto_host</a><a href="#info">nocto_plugin_info</a><a href="#props">Properties & settings UI</a><a href="#source">Sources</a><a href="#vfilter">Video filters</a><a href="#texture">D3D11 texture contract</a><a href="#afilter">Audio filters</a><a href="#audio">Audio buffer format</a><a href="#output">Outputs</a><a href="#hotkey">Hotkey actions</a><a href="#script">Script engine (reserved)</a><a href="#enums">Enums, macros & typedefs</a><a href="#threads">Threading & lifetime</a><a href="#loading">Load paths, enable/disable</a><a href="#crash">Crash handling & limits</a><a href="#shader">Shader-only plugins</a><a href="#first">Build your first plugin</a><a href="#samples">Sample plugins (full source)</a><a href="#debug">Debugging & plugins.log</a><a href="#faq">FAQ</a><a href="#download">Downloads</a></aside><main class="doc">
 <section id="overview"><h1>Nocto Plugin SDK</h1>
 <p class="lead">Extend Nocto with native C/C++ DLLs or shader-only filters. ABI version <b>1</b>, Nocto 0.4.0+.</p>
@@ -671,5 +671,6 @@ typedef void (*nocto_plugin_unload_fn)(void);
 #endif
 #endif /* NOCTO_PLUGIN_H */</code></pre></section>
 
-<footer>Nocto &copy; 2026 Luke Roundy &middot; Plugin ABI 1</footer></main></div>
+<div class="support"><b>Enjoying Nocto?</b> Plugin SDK, docs and app are made by one developer. <a class="btn" href="https://www.patreon.com/noctoapp" target="_blank" rel="noopener">Support on Patreon</a></div>
+<footer>Nocto &copy; 2026 Luke Roundy &middot; Plugin ABI 1 &middot; <a href="https://www.patreon.com/noctoapp" target="_blank" rel="noopener">Support on Patreon</a></footer></main></div>
 <script src="assets/hl.js"></script></body></html>
