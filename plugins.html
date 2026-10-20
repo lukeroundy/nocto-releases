@@ -1,0 +1,675 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Plugin SDK - Nocto</title><link rel="icon" href="assets/favicon.png"><link rel="stylesheet" href="assets/docs.css"></head><body>
+<header class="top"><a class="brand" href="./"><img src="assets/logo.png" alt="">Nocto</a><nav><a href="./">Home</a><a href="plugins.html" class="on">Plugin SDK</a><a href="https://github.com/lukeroundy/nocto-releases/releases">Releases</a></nav><button id="toc-toggle" aria-label="Contents">&#9776;</button></header>
+<div class="wrap"><aside id="toc"><div class="tt">Contents</div><a href="#overview">Overview</a><a href="#types">Plugin types</a><a href="#abi">ABI & entry points</a><a href="#host">nocto_host</a><a href="#info">nocto_plugin_info</a><a href="#props">Properties & settings UI</a><a href="#source">Sources</a><a href="#vfilter">Video filters</a><a href="#texture">D3D11 texture contract</a><a href="#afilter">Audio filters</a><a href="#audio">Audio buffer format</a><a href="#output">Outputs</a><a href="#hotkey">Hotkey actions</a><a href="#script">Script engine (reserved)</a><a href="#enums">Enums, macros & typedefs</a><a href="#threads">Threading & lifetime</a><a href="#loading">Load paths, enable/disable</a><a href="#crash">Crash handling & limits</a><a href="#shader">Shader-only plugins</a><a href="#first">Build your first plugin</a><a href="#samples">Sample plugins (full source)</a><a href="#debug">Debugging & plugins.log</a><a href="#faq">FAQ</a><a href="#download">Downloads</a></aside><main class="doc">
+<section id="overview"><h1>Nocto Plugin SDK</h1>
+<p class="lead">Extend Nocto with native C/C++ DLLs or shader-only filters. ABI version <b>1</b>, Nocto 0.4.0+.</p>
+<div class="dl"><a class="btn" href="sdk/nocto-plugin-sdk-1.0.zip">Download SDK (zip)</a> <a class="btn ghost" href="sdk/nocto_plugin.h" download>nocto_plugin.h</a></div>
+<p>A plugin is a Windows x64 DLL that exports a small plain-C interface defined in a single header,
+<code>nocto_plugin.h</code> (no dependencies besides <code>&lt;stdint.h&gt;</code>). All GPU objects are Direct3D 11 objects on Nocto's
+own device, passed as <code>void*</code>, so frames never leave the GPU. Simple video effects need no compiler at all: a JSON manifest plus
+an HLSL pixel shader is a complete plugin.</p>
+<p>Nocto draws all settings UI for you from a list of typed properties, logs everything to <code>plugins.log</code>, and catches crashes inside plugin
+callbacks so a bad plugin cannot take a recording down with it (within <a href="#crash">limits</a>).</p></section>
+
+<section id="types"><h2>Plugin types</h2>
+<p>One DLL can register any number of features of any kind from <code>nocto_plugin_load</code>.</p>
+<table><tr><th>Feature</th><th>Descriptor</th><th>Register with</th><th>Called on</th><th>Where it appears</th></tr>
+<tr><td>Source</td><td><code>nocto_source_desc</code></td><td><code>register_source</code></td><td>render thread</td><td>Add Source &rsaquo; Plugins</td></tr>
+<tr><td>Video filter</td><td><code>nocto_video_filter_desc</code></td><td><code>register_video_filter</code></td><td>render thread</td><td>source Filters &rsaquo; add video filter</td></tr>
+<tr><td>Audio filter</td><td><code>nocto_audio_filter_desc</code></td><td><code>register_audio_filter</code></td><td>audio mixer thread</td><td>audio source Filters</td></tr>
+<tr><td>Output</td><td><code>nocto_output_desc</code></td><td><code>register_output</code></td><td>render thread (video), audio thread (audio)</td><td>File &rsaquo; Plugins&hellip; (Start/Stop)</td></tr>
+<tr><td>Hotkey action</td><td><code>nocto_hotkey_desc</code></td><td><code>register_hotkey</code></td><td>UI thread</td><td>Settings &rsaquo; Hotkeys &rsaquo; Plugins</td></tr>
+<tr><td>Script engine</td><td><code>nocto_script_engine_desc</code></td><td><code>register_script_engine</code></td><td>&mdash;</td><td>reserved; always returns 0 today</td></tr></table>
+<p>Each feature is identified internally by <code>&lt;DLL file stem&gt;/&lt;feature id&gt;</code> (for example <code>sample_source/color_bars</code>).
+Scenes store that key, so <b>do not rename the DLL or change ids</b> after users have saved scenes with your plugin.</p></section>
+
+<section id="abi"><h2>ABI, versioning & entry points</h2>
+<pre><code class="lang-c">NOCTO_EXPORT uint32_t nocto_plugin_abi(void);                                  // required: return NOCTO_PLUGIN_ABI
+NOCTO_EXPORT int      nocto_plugin_load(const nocto_host* host, nocto_plugin_info* info);  // required: 1 = ok, 0 = fail
+NOCTO_EXPORT void     nocto_plugin_unload(void);                               // optional</code></pre>
+<p>In C++ declare them <code>extern "C"</code> so the names are not mangled. Load sequence:</p>
+<ol><li>Nocto <code>LoadLibraryEx</code>s the DLL (search: the DLL's own folder, then system default dirs; put private dependencies next to your DLL).</li>
+<li>It looks up <code>nocto_plugin_abi</code> and <code>nocto_plugin_load</code>; if either is missing the file is reported as <i>not a Nocto plugin</i> and unloaded.</li>
+<li><code>nocto_plugin_abi()</code> must return exactly the host's <code>NOCTO_PLUGIN_ABI</code> (currently <code>1u</code>). Any other value: <i>ABI n not supported (host ABI 1)</i>, the DLL is unloaded.</li>
+<li><code>nocto_plugin_load(host, info)</code> is called once. Fill <code>info</code> and call <code>host-&gt;register_*</code>. Return 1. Returning 0 marks the plugin failed (<i>nocto_plugin_load returned 0</i>) and drops anything it registered.</li></ol>
+<p><b>Versioning rules.</b> The ABI number changes only on incompatible changes (struct layout, calling conventions, semantics). Within ABI 1 new functionality
+will be added only through new exports or new <code>register_*</code> features, never by changing existing structs. Compile against the header shipped with the
+ABI you target; check <code>host-&gt;abi</code> if you want to refuse unknown hosts. <code>host-&gt;host_version</code> is a human-readable string (currently
+<code>"Nocto 1.0"</code>, the plugin host version, not the app version) for logging only &mdash; don't parse it.</p>
+<p><code>nocto_plugin_unload</code> is resolved but <b>currently never called</b>: DLLs stay mapped until the process exits, and Nocto does not call into plugins at
+shutdown. Don't put essential cleanup (flushing files) there; do it in <code>destroy</code>/<code>stop</code>.</p></section>
+
+<section id="host"><h2>nocto_host</h2>
+<pre><code class="lang-c">typedef struct nocto_host {
+    uint32_t abi;            /* NOCTO_PLUGIN_ABI of the host */
+    const char* host_version;
+    void* plugin;            /* opaque handle, pass back to every call */
+    void (*log)(void* plugin, int32_t level, const char* utf8_message);
+    int (*register_source)(void* plugin, const nocto_source_desc* d);
+    int (*register_video_filter)(void* plugin, const nocto_video_filter_desc* d);
+    int (*register_audio_filter)(void* plugin, const nocto_audio_filter_desc* d);
+    int (*register_output)(void* plugin, const nocto_output_desc* d);
+    int (*register_hotkey)(void* plugin, const nocto_hotkey_desc* d);
+    int (*register_script_engine)(void* plugin, const nocto_script_engine_desc* d);
+} nocto_host;</code></pre>
+<table><tr><th>Member</th><th>Meaning</th></tr>
+<tr><td><code>abi</code></td><td>Host ABI (1).</td></tr>
+<tr><td><code>host_version</code></td><td>Display string, e.g. <code>"Nocto 1.0"</code>.</td></tr>
+<tr><td><code>plugin</code></td><td>Your opaque handle. Pass it as the first argument of every host call.</td></tr>
+<tr><td><code>log(plugin, level, msg)</code></td><td>Appends <code>HH:MM:SS &lt;file&gt; [info|warn|error] msg</code> to the Plugins window and <code>%LOCALAPPDATA%\Nocto\plugins.log</code>. UTF-8. <b>Callable from any thread, at any time</b> while the plugin is loaded (keep the <code>host</code> pointer; it stays valid for the process lifetime). <code>level</code> is clamped to 0&ndash;2.</td></tr>
+<tr><td><code>register_*(plugin, d)</code></td><td>Registers a feature. Returns 1 on success, 0 if rejected. <b>Only valid during <code>nocto_plugin_load</code></b> on the loading thread; later calls return 0. Rejected when: <code>d</code> is NULL, <code>id</code> is NULL/empty, the <code>plugin</code> handle is wrong, or a required callback is missing (source: <code>create</code> and <code>render</code>; video/audio filter: <code>process</code>; output: <code>start</code>; hotkey: <code>pressed</code>). <code>register_script_engine</code> always returns 0.</td></tr></table>
+<p>The descriptor pointer is stored, not copied: <b>descriptors and every string/array they reference must stay valid until the process exits</b> &mdash; use <code>static const</code> storage. Property arrays are copied (max 64 entries per feature); the display name defaults to the id when <code>name</code> is NULL or empty.</p></section>
+
+<section id="info"><h2>nocto_plugin_info</h2>
+<pre><code class="lang-c">typedef struct nocto_plugin_info {
+    uint32_t abi;            /* set to NOCTO_PLUGIN_ABI */
+    const char* name;
+    const char* version;
+    const char* author;
+    const char* description;
+} nocto_plugin_info;</code></pre>
+<p>Zero-initialised by Nocto before <code>nocto_plugin_load</code>. All strings are UTF-8 and optional; NULL keeps the default (name = file stem). They are copied after load returns, so string literals or static buffers are fine. Shown in File &rsaquo; Plugins&hellip;.</p></section>
+
+<section id="props"><h2>Properties & generated settings UI</h2>
+<pre><code class="lang-c">typedef enum nocto_prop_type { NOCTO_PROP_FLOAT = 0, NOCTO_PROP_INT = 1, NOCTO_PROP_BOOL = 2, NOCTO_PROP_COLOR = 3 } nocto_prop_type;
+typedef struct nocto_prop {
+    const char* id;          /* stable key */
+    const char* label;       /* shown in the UI */
+    int32_t type;            /* nocto_prop_type */
+    float def, min, max;
+} nocto_prop;</code></pre>
+<p>Every source, filter and output describes its settings as an array of <code>nocto_prop</code> (<code>props</code> + <code>prop_count</code>). Nocto draws the UI and hands you the current values as <code>const float* values</code>, <b>one float per property in declaration order</b>.</p>
+<table><tr><th>type</th><th>Widget</th><th>Value</th></tr>
+<tr><td><code>NOCTO_PROP_FLOAT</code></td><td>slider <code>min..max</code></td><td>float</td></tr>
+<tr><td><code>NOCTO_PROP_INT</code></td><td>integer slider <code>(int)min..(int)max</code></td><td>whole number stored as float</td></tr>
+<tr><td><code>NOCTO_PROP_BOOL</code></td><td>checkbox</td><td>0 or 1</td></tr>
+<tr><td><code>NOCTO_PROP_COLOR</code></td><td>RGB colour picker</td><td><code>0xRRGGBB</code> stored as float (exact: 24-bit integers fit a float). Decode with <code>(uint32_t)v</code>. No alpha.</td></tr></table>
+<ul><li>A <b>Defaults</b> button resets to <code>def</code>. <code>label</code> NULL falls back to <code>id</code>.</li>
+<li>Values are stored in the scene file per instance (<code>pluginParams</code> for sources, <code>p</code> for filters). If a saved list is shorter than your current property list (you added properties in an update) the missing tail is filled with <code>def</code> &mdash; so <b>only append new properties at the end</b>; never reorder or remove.</li>
+<li>Sliders allow ctrl+click text entry, so values can lie outside <code>min..max</code>; clamp if it matters.</li>
+<li>If a feature has no properties, <code>values</code> still points to a valid array with one element (0).</li>
+<li>Outputs are started from the Plugins window with their <b>default</b> values (there is no output settings UI yet).</li></ul></section>
+
+<section id="source"><h2>Sources</h2>
+<pre><code class="lang-c">typedef struct nocto_source_desc {
+    const char* id;          /* unique within the plugin */
+    const char* name;        /* &quot;Add source&quot; menu label */
+    const nocto_prop* props; uint32_t prop_count;
+    void* (*create)(void* device, const float* values);
+    void (*destroy)(void* inst);
+    void (*update)(void* inst, const float* values);                 /* settings changed (optional) */
+    void* (*render)(void* inst, void* context, double time_sec, uint32_t* w, uint32_t* h);
+} nocto_source_desc;</code></pre>
+<dl><dt><code>create(device, values)</code> &mdash; required</dt><dd><code>device</code> is Nocto's <code>ID3D11Device*</code> (do not Release it). Return your instance, or NULL on failure (the source shows <i>plugin source unavailable</i>). Called lazily on the render thread the first time the source is drawn.</dd>
+<dt><code>destroy(inst)</code> &mdash; optional</dt><dd>Free everything. Called when the source is removed, the scene is unloaded, or its settings change (see below).</dd>
+<dt><code>update(inst, values)</code> &mdash; optional</dt><dd>Reserved. <b>Nocto 0.4 does not call it</b>: changing a plugin source's settings destroys the instance and creates a new one with the new values. Implement it anyway if you can update cheaply; a future version may call it instead of recreating.</dd>
+<dt><code>render(inst, context, time_sec, w, h)</code> &mdash; required</dt><dd>Called once per rendered frame. <code>context</code> is the immediate <code>ID3D11DeviceContext*</code>. Return an <code>ID3D11ShaderResourceView*</code> you own and set <code>*w</code>/<code>*h</code> to its size, or return NULL to draw nothing this frame. <code>time_sec</code> is seconds since plugins were loaded (monotonic, QPC). Nocto does not AddRef the view; it must stay valid until your next <code>render</code> or <code>destroy</code>.</dd></dl></section>
+
+<section id="vfilter"><h2>Video filters</h2>
+<pre><code class="lang-c">typedef struct nocto_video_filter_desc {
+    const char* id; const char* name;
+    const nocto_prop* props; uint32_t prop_count;
+    void* (*create)(void* device);
+    void (*destroy)(void* inst);
+    int (*process)(void* inst, void* context, void* in_srv, void* out_rtv, uint32_t w, uint32_t h, const float* values, double time_sec);
+} nocto_video_filter_desc;</code></pre>
+<dl><dt><code>create(device)</code> &mdash; optional</dt><dd>Called once per filter slot (source + position in its filter list) the first time it runs. Returning NULL is <b>not</b> treated as failure: <code>process</code> is still called with <code>inst == NULL</code>, so check for it. If <code>create</code> is absent, <code>inst</code> is always NULL.</dd>
+<dt><code>destroy(inst)</code> &mdash; optional</dt><dd>Reserved: in 0.4 filter instances live until Nocto exits and <code>destroy</code> is not called. Keep per-instance GPU memory modest.</dd>
+<dt><code>process(inst, context, in_srv, out_rtv, w, h, values, time_sec)</code> &mdash; required</dt><dd>Read <code>in_srv</code> (<code>ID3D11ShaderResourceView*</code>), write all of <code>out_rtv</code> (<code>ID3D11RenderTargetView*</code>), both <code>w</code>&times;<code>h</code>. Return 1 if you wrote the output, 0 to pass the input through unchanged (then the output contents are ignored). <code>values</code> are the current settings (changes take effect on the next frame, no recreate).</dd></dl></section>
+
+<section id="texture"><h2>D3D11 texture contract</h2>
+<table><tr><th></th><th>Format</th><th>Colour encoding</th><th>Alpha</th></tr>
+<tr><td>Source output (your SRV)</td><td><code>DXGI_FORMAT_B8G8R8A8_UNORM</code> or <code>R8G8B8A8_UNORM</code> (the <code>_SRGB</code> variants are not needed)</td><td>sRGB-encoded values</td><td><b>straight</b> (not premultiplied)</td></tr>
+<tr><td>Video filter in / out, SDR canvas</td><td><code>B8G8R8A8_UNORM</code></td><td>sRGB-encoded values, unorm view (no automatic sRGB conversion)</td><td>straight</td></tr>
+<tr><td>Video filter in / out, HDR canvas</td><td><code>R16G16B16A16_FLOAT</code></td><td>linear scRGB (1.0 = 80 nits; values &gt; 1 are HDR)</td><td>straight</td></tr>
+<tr><td>Output <code>canvas_srv</code></td><td>BGRA8 (SDR) or <code>R16G16B16A16_FLOAT</code> (HDR)</td><td>sRGB / scRGB as above</td><td>opaque program frame</td></tr></table>
+<ul><li><b>Alpha is straight.</b> Nocto composites with <code>SRC_ALPHA / INV_SRC_ALPHA</code>. If your shader works in premultiplied space, divide by alpha before writing.</li>
+<li>Formats of filter input and output are identical; query <code>ID3D11ShaderResourceView::GetDesc</code> if you need to know which one you got. Write code that works for both (a shader that only does arithmetic on <code>float4</code> does).</li>
+<li><b>Device/context:</b> use only Nocto's device and the passed context (the immediate context). Nocto holds the device lock while calling you: do not lock it again, do not call <code>Flush</code>/<code>Map</code> with waits on GPU work, do not block. Create resources in <code>create</code>, not every frame.</li>
+<li><b>Pipeline state is not preserved.</b> Before calling a video filter Nocto leaves arbitrary state bound; set everything you use (render target, viewport, blend, rasterizer, shaders, IA, constant buffers, samplers, SRVs). Nocto restores its own state afterwards. Unbind <code>in_srv</code> from your PS slot when done (the texture becomes a render target for the next filter).</li>
+<li>Don't keep <code>in_srv</code>/<code>out_rtv</code> beyond the call: they are ping-pong targets, recreated on resize.</li>
+<li>Filter dimensions are the source's native size (up to 16384&times;16384).</li></ul></section>
+
+<section id="afilter"><h2>Audio filters</h2>
+<pre><code class="lang-c">typedef struct nocto_audio_filter_desc {
+    const char* id; const char* name;
+    const nocto_prop* props; uint32_t prop_count;
+    void* (*create)(uint32_t sample_rate, uint32_t channels);
+    void (*destroy)(void* inst);
+    void (*process)(void* inst, float* samples, uint32_t frames, const float* values);
+} nocto_audio_filter_desc;</code></pre>
+<dl><dt><code>create(sample_rate, channels)</code> &mdash; optional</dt><dd>One instance per audio source the filter is added to. Rate and channel count are fixed for the instance's life (the chain is rebuilt if the configuration changes). NULL is allowed as instance.</dd>
+<dt><code>destroy(inst)</code> &mdash; optional</dt><dd>Called when the filter is removed/reordered, the source goes away or the audio settings change.</dd>
+<dt><code>process(inst, samples, frames, values)</code> &mdash; required</dt><dd>Modify <code>frames &times; channels</code> samples in place. Must be real-time safe: no allocation, locks, I/O or logging per call.</dd></dl></section>
+
+<section id="audio"><h2>Audio buffer format</h2>
+<ul><li>32-bit float, interleaved (<code>L R L R &hellip;</code>), nominal range &plusmn;1.0 (not clipped between filters).</li>
+<li><code>channels</code> = 2 (stereo) in Nocto 0.4; <code>sample_rate</code> = Settings &rsaquo; Audio sample rate (48000 by default, 44100 possible).</li>
+<li>Chunks are 10 ms (<code>sample_rate / 100</code> frames, 480 at 48 kHz) &mdash; but always use the <code>frames</code> argument; don't hard-code it.</li>
+<li>Filters run per source before mixing, on the mixer thread. Output <code>audio</code> callbacks receive the final mix in the same format with <code>pts</code> in 100 ns QPC units.</li>
+<li>Filters must not add latency (Nocto does not compensate plugin latency).</li></ul></section>
+
+<section id="output"><h2>Outputs</h2>
+<pre><code class="lang-c">typedef struct nocto_output_desc {
+    const char* id; const char* name;
+    const nocto_prop* props; uint32_t prop_count;
+    void* (*start)(void* device, const float* values);
+    void (*stop)(void* inst);
+    void (*video)(void* inst, void* context, void* canvas_srv, uint32_t w, uint32_t h, int64_t pts);
+    void (*audio)(void* inst, const float* samples, uint32_t frames, uint32_t sample_rate, uint32_t channels, int64_t pts);
+} nocto_output_desc;</code></pre>
+<dl><dt><code>start(device, values)</code> &mdash; required</dt><dd>Called on the UI thread when the user presses Start in File &rsaquo; Plugins&hellip; (with default values). Return the instance, NULL = <i>start failed</i>.</dd>
+<dt><code>stop(inst)</code> &mdash; optional</dt><dd>Called on Stop (UI thread). Free the instance. Not called at app exit.</dd>
+<dt><code>video(inst, context, canvas_srv, w, h, pts)</code> &mdash; optional</dt><dd>Every program frame, render thread, device locked. <code>canvas_srv</code> is valid only during the call: copy it (<code>CopyResource</code> into your own texture) if you need it later; read back asynchronously with staging textures over several frames &mdash; never stall. <code>pts</code>: 100 ns QPC ticks. A frame may be skipped if the plugin host is busy (start/stop in progress).</dd>
+<dt><code>audio(inst, samples, frames, sample_rate, channels, pts)</code> &mdash; optional</dt><dd>Mixed program audio, audio thread, read-only buffer. Video and audio come on different threads &mdash; synchronise your own state.</dd></dl></section>
+
+<section id="hotkey"><h2>Hotkey actions</h2>
+<pre><code class="lang-c">typedef struct nocto_hotkey_desc {
+    const char* id; const char* label;
+    void (*pressed)(void* user);
+    void* user;
+} nocto_hotkey_desc;</code></pre>
+<p>Listed under Settings &rsaquo; Hotkeys &rsaquo; Plugins with <code>label</code>; the user binds a key. <code>pressed(user)</code> runs on the UI thread on key press, with the <code>user</code> pointer from the descriptor. Keep it short (it blocks the UI); use atomics if render-thread code reads what you change.</p></section>
+
+<section id="script"><h2>Script engine (reserved)</h2>
+<pre><code class="lang-c">typedef struct nocto_script_engine_desc {
+    const char* id; const char* name; const char* file_extension;
+    int (*run_file)(void* user, const char* utf8_path);
+    void* user;
+} nocto_script_engine_desc;</code></pre>
+<p>Placeholder for a future scripting host. <code>register_script_engine</code> returns 0 in all Nocto 0.x/1.x builds; nothing is called.</p></section>
+
+<section id="enums"><h2>Enums, macros & typedefs</h2>
+<table><tr><th>Name</th><th>Value / type</th></tr>
+<tr><td><code>NOCTO_PLUGIN_ABI</code></td><td><code>1u</code></td></tr>
+<tr><td><code>NOCTO_EXPORT</code></td><td><code>__declspec(dllexport)</code> on Windows</td></tr>
+<tr><td><code>nocto_prop_type</code></td><td><code>NOCTO_PROP_FLOAT=0, NOCTO_PROP_INT=1, NOCTO_PROP_BOOL=2, NOCTO_PROP_COLOR=3</code></td></tr>
+<tr><td><code>nocto_log_level</code></td><td><code>NOCTO_LOG_INFO=0, NOCTO_LOG_WARN=1, NOCTO_LOG_ERROR=2</code></td></tr>
+<tr><td><code>nocto_plugin_abi_fn</code></td><td><code>uint32_t (*)(void)</code></td></tr>
+<tr><td><code>nocto_plugin_load_fn</code></td><td><code>int (*)(const nocto_host*, nocto_plugin_info*)</code></td></tr>
+<tr><td><code>nocto_plugin_unload_fn</code></td><td><code>void (*)(void)</code></td></tr></table>
+<p>Struct fields use fixed-width types and natural alignment; the header is valid C89-with-stdint and C++.</p></section>
+
+<section id="threads"><h2>Threading & lifetime rules</h2>
+<table><tr><th>Callback</th><th>Thread</th><th>Notes</th></tr>
+<tr><td><code>nocto_plugin_abi / load</code></td><td>main thread at startup, UI thread when enabled later</td><td>register_* only here</td></tr>
+<tr><td>source <code>create/render/destroy</code></td><td>render thread</td><td>device locked; never block</td></tr>
+<tr><td>video filter <code>create/process</code></td><td>render thread</td><td>device locked</td></tr>
+<tr><td>audio filter <code>create/process/destroy</code></td><td>audio mixer thread</td><td>real-time</td></tr>
+<tr><td>output <code>start/stop</code></td><td>UI thread</td><td></td></tr>
+<tr><td>output <code>video</code> / <code>audio</code></td><td>render thread / audio thread</td><td>concurrent with each other</td></tr>
+<tr><td>hotkey <code>pressed</code></td><td>UI thread</td><td></td></tr>
+<tr><td><code>host-&gt;log</code></td><td>any</td><td>thread-safe</td></tr></table>
+<ul><li>Different instances of your features can be called concurrently from different threads: protect shared globals.</li>
+<li>One instance is never called from two threads at once, except outputs (video vs audio).</li>
+<li>Lifetimes: descriptors/strings &rarr; process lifetime; instance &rarr; create..destroy; SRV returned by <code>render</code> &rarr; until next render/destroy; <code>in_srv</code>/<code>out_rtv</code>/<code>canvas_srv</code>/<code>samples</code> &rarr; the call only.</li></ul></section>
+
+<section id="loading"><h2>Load paths, enable / disable</h2>
+<ul><li>Folders, in order: <code>%LOCALAPPDATA%\Nocto\plugins\</code> (per user; File &rsaquo; Plugins&hellip; &rsaquo; <i>Open user plugins folder</i>), then <code>&lt;Nocto.exe folder&gt;\plugins\</code> (shipped samples).</li>
+<li>Every <code>*.dll</code> is a code plugin and every <code>*.json</code> a shader manifest; sorted by name within a folder. A file name loads only once: the per-user copy wins and the other is logged as <i>skipped</i>. Subfolders are not scanned &mdash; put a DLL's own dependencies next to it.</li>
+<li>Plugins load at startup. In File &rsaquo; Plugins&hellip; each has a checkbox: <b>disable</b> stops every call into it immediately (sources draw nothing, filters pass through, its menu entries disappear) and is remembered in settings; the DLL stays mapped until restart. <b>Enable</b> loads a not-yet-loaded plugin right away.</li>
+<li>To update a DLL: close Nocto (the file is locked while mapped), replace it, start Nocto.</li></ul></section>
+
+<section id="crash"><h2>Crash handling and its limits</h2>
+<p>Every call into a plugin (including <code>nocto_plugin_abi</code> and <code>nocto_plugin_load</code>) runs inside a structured-exception (SEH) guard. On an access violation or any other SEH exception the plugin is marked <b>Crashed</b> and logged as
+<code>sample.dll: crashed in video filter process (exception 0xC0000005) - plugin disabled</code>. No further calls are made: sources draw nothing, filters pass video/audio through, outputs stop being fed. Recording and streaming continue. A crashed plugin can only be re-enabled by restarting Nocto.</p>
+<p><b>This is a safety net, not a sandbox.</b> It cannot help when a plugin:</p>
+<ul><li>corrupts memory (heap or Nocto's) without faulting immediately &mdash; Nocto may crash later anywhere;</li>
+<li>hangs or blocks (deadlocks the render/audio thread &rarr; frozen app, dropped frames);</li>
+<li>throws a C++ exception across the C boundary (catch everything inside your callbacks), calls <code>abort()</code>/<code>exit()</code>, or stack-overflows badly;</li>
+<li>leaves the D3D device removed (e.g. TDR from an endless shader loop);</li>
+<li>has no exception: wrong results, leaked GPU memory.</li></ul>
+<p>Only install plugins you trust; they run with full user rights inside Nocto.</p></section>
+
+<section id="shader"><h2>Shader-only plugins</h2>
+<p>A video filter with no DLL: a manifest <code>&lt;name&gt;.json</code> plus an HLSL file in a plugin folder.</p>
+<h3>Manifest schema</h3>
+<table><tr><th>Key</th><th>Type</th><th>Default</th><th>Meaning</th></tr>
+<tr><td><code>id</code></td><td>string</td><td>file stem</td><td>feature id (key = <code>&lt;stem&gt;/&lt;id&gt;</code>)</td></tr>
+<tr><td><code>name</code></td><td>string</td><td>file stem</td><td>menu / list name</td></tr>
+<tr><td><code>version</code>, <code>author</code>, <code>description</code></td><td>string</td><td>"1.0", "", ""</td><td>shown in Plugins window</td></tr>
+<tr><td><code>shader</code></td><td>string</td><td><code>&lt;stem&gt;.hlsl</code></td><td>HLSL file, relative to the manifest</td></tr>
+<tr><td><code>entry</code></td><td>string</td><td><code>main</code></td><td>pixel shader entry point</td></tr>
+<tr><td><code>params</code></td><td>array</td><td>[]</td><td>up to 16 entries <code>{id, label, type, default, min, max}</code>; <code>type</code> = <code>"float"</code> | <code>"int"</code> | <code>"bool"</code> | <code>"color"</code>; <code>default</code>/<code>min</code>/<code>max</code> default 0/0/1; colours are <code>0xRRGGBB</code> as a decimal number</td></tr></table>
+<h3>What Nocto provides</h3>
+<p>The file is compiled as <code>ps_5_0</code> (optimisation level 3) when the plugin loads; errors appear in the Plugins window and log. Nocto prepends exactly:</p>
+<pre><code class="lang-hlsl">Texture2D src : register(t0);
+SamplerState samp : register(s0);
+cbuffer NoctoParams : register(b0) { float4 noctoP[4]; float4 noctoInfo; };
+#define PARAM(i) (noctoP[(i) / 4][(i) % 4])
+#define TEXSIZE (noctoInfo.xy)
+#define TIME (noctoInfo.z)
+#line 1</code></pre>
+<ul><li><code>src</code>: the input (format/alpha per the <a href="#texture">texture contract</a>); <code>samp</code>: linear filtering, clamp.</li>
+<li><code>PARAM(i)</code>: manifest param <code>i</code> (0-based, declaration order); <code>TEXSIZE</code>: size in pixels; <code>TIME</code>: seconds.</li>
+<li>Nocto draws a fullscreen triangle with blending off. Your entry gets <code>(float4 pos : SV_Position, float2 uv : TEXCOORD0)</code> (uv 0..1, top-left origin) and returns <code>float4 : SV_Target</code> (straight alpha). Don't redeclare <code>b0/t0/s0</code>.</li></ul>
+<h3>Full example: vignette</h3><p><code>vignette.json</code></p><pre><code class="lang-json">{
+  &quot;id&quot;: &quot;vignette&quot;,
+  &quot;name&quot;: &quot;Vignette (sample shader)&quot;,
+  &quot;version&quot;: &quot;1.0.0&quot;,
+  &quot;author&quot;: &quot;Nocto&quot;,
+  &quot;description&quot;: &quot;Shader-only filter sample: darkens the edges of a source.&quot;,
+  &quot;shader&quot;: &quot;vignette.hlsl&quot;,
+  &quot;entry&quot;: &quot;main&quot;,
+  &quot;params&quot;: [
+    { &quot;id&quot;: &quot;strength&quot;, &quot;label&quot;: &quot;Strength&quot;, &quot;type&quot;: &quot;float&quot;, &quot;default&quot;: 0.6, &quot;min&quot;: 0, &quot;max&quot;: 1 },
+    { &quot;id&quot;: &quot;radius&quot;,   &quot;label&quot;: &quot;Radius&quot;,   &quot;type&quot;: &quot;float&quot;, &quot;default&quot;: 0.75, &quot;min&quot;: 0.1, &quot;max&quot;: 1.5 },
+    { &quot;id&quot;: &quot;tint&quot;,     &quot;label&quot;: &quot;Tint&quot;,     &quot;type&quot;: &quot;color&quot;, &quot;default&quot;: 0 }
+  ]
+}</code></pre><p><code>vignette.hlsl</code></p><pre><code class="lang-hlsl">// Nocto shader filter. Provided by the host: Texture2D src, SamplerState samp, PARAM(i) (manifest params in order),
+// TEXSIZE (float2 pixels), TIME (seconds). Input: SV_Position + TEXCOORD0 (0..1). Output: straight-alpha colour.
+float3 Unpack(float c) { uint u = (uint)c; return float3((u &gt;&gt; 16) &amp; 255, (u &gt;&gt; 8) &amp; 255, u &amp; 255) / 255.0; }
+float4 main(float4 pos : SV_Position, float2 uv : TEXCOORD0) : SV_Target {
+    float4 c = src.Sample(samp, uv);
+    float2 d = (uv - 0.5) * float2(TEXSIZE.x / TEXSIZE.y, 1.0);
+    float r = length(d) / (0.5 * length(float2(TEXSIZE.x / TEXSIZE.y, 1.0)));
+    float v = 1.0 - PARAM(0) * smoothstep(PARAM(1) * 0.5, PARAM(1) * 1.33, r);
+    c.rgb = lerp(Unpack(PARAM(2)), c.rgb, v);
+    return c;
+}</code></pre>
+<p>Copy both files into <code>%LOCALAPPDATA%\Nocto\plugins</code>, restart Nocto (or enable it), then add <i>Vignette (sample shader)</i> from a source's Filters.</p></section>
+
+<section id="first"><h2>Build your first plugin (CMake + MSVC)</h2>
+<ol><li>Install <b>Visual Studio 2022</b> or <b>Build Tools 2022</b> with "Desktop development with C++" (includes the Windows SDK) and <b>CMake 3.20+</b>.</li>
+<li>Download and unzip <a href="sdk/nocto-plugin-sdk-1.0.zip">nocto-plugin-sdk-1.0.zip</a>:
+<pre><code class="lang-text">nocto-plugin-sdk/
+  CMakeLists.txt                 nocto_add_plugin() helper; builds sample + template
+  README.md
+  include/nocto_plugin.h
+  samples/sample_source/sample_source.cpp
+  samples/shader_vignette/vignette.json, vignette.hlsl
+  template/my_plugin.cpp         Invert video filter + hotkey</code></pre></li>
+<li>Edit <code>template/my_plugin.cpp</code>: change ids, names and <code>info</code>. To add a file of your own: <code>nocto_add_plugin(my-thing my_thing src/my_thing.cpp)</code> in <code>CMakeLists.txt</code>.</li>
+<li>Build (from a normal or Developer PowerShell):
+<pre><code class="lang-sh">cmake -S . -B build -A x64
+cmake --build build --config Release
+cmake --install build --config Release   # copies the DLLs + vignette into %LOCALAPPDATA%\Nocto\plugins</code></pre></li>
+<li>Start Nocto. File &rsaquo; Plugins&hellip; should list <i>My Plugin 1.0.0 (2 features)</i>. Add a source, open its Filters, add <i>Invert (my plugin)</i>; bind <i>My plugin: say hello</i> in Settings &rsaquo; Hotkeys and watch the log.</li></ol>
+<p>Without CMake, from a <i>x64 Native Tools</i> prompt:</p>
+<pre><code class="lang-sh">cl /nologo /LD /MT /EHsc /std:c++17 /I include template\my_plugin.cpp d3d11.lib d3dcompiler.lib</code></pre>
+<p>Tips: build x64 only (Nocto is 64-bit); <code>/MT</code> (static CRT) avoids runtime dependencies; any compiler that produces a C-ABI x64 DLL works (clang-cl, MinGW with <code>__declspec(dllexport)</code>, Rust <code>cdylib</code>, Zig).</p>
+<h3>CMakeLists.txt</h3><pre><code class="lang-cmake"># Nocto plugin SDK (ABI 1) - CMake template. Builds the C++ sample and the template plugin.
+#   cmake -S . -B build -A x64
+#   cmake --build build --config Release
+# Output: build\Release\sample_source.dll, build\Release\my_plugin.dll -&gt; copy to %LOCALAPPDATA%\Nocto\plugins
+cmake_minimum_required(VERSION 3.20)
+project(NoctoPluginSDK LANGUAGES C CXX)
+set(CMAKE_CXX_STANDARD 17)
+if(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
+  message(FATAL_ERROR &quot;Nocto is 64-bit only: configure with -A x64&quot;)
+endif()
+
+# nocto_add_plugin(&lt;target&gt; &lt;output name&gt; &lt;sources...&gt;)
+function(nocto_add_plugin target outname)
+  add_library(${target} SHARED ${ARGN})
+  target_include_directories(${target} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+  target_link_libraries(${target} PRIVATE d3d11 d3dcompiler)
+  # static CRT: the DLL has no runtime dependency besides Windows itself
+  set_target_properties(${target} PROPERTIES OUTPUT_NAME ${outname}
+    MSVC_RUNTIME_LIBRARY &quot;MultiThreaded$&lt;$&lt;CONFIG:Debug&gt;:Debug&gt;&quot;)
+endfunction()
+
+nocto_add_plugin(nocto-sample-source sample_source samples/sample_source/sample_source.cpp)
+nocto_add_plugin(my-plugin my_plugin template/my_plugin.cpp)
+
+# Optional: cmake --install build --config Release  -&gt; copies DLLs + shader sample into your user plugins folder
+set(NOCTO_PLUGIN_DIR &quot;$ENV{LOCALAPPDATA}/Nocto/plugins&quot; CACHE PATH &quot;Nocto user plugin folder&quot;)
+install(TARGETS nocto-sample-source my-plugin RUNTIME DESTINATION &quot;${NOCTO_PLUGIN_DIR}&quot;)
+install(FILES samples/shader_vignette/vignette.json samples/shader_vignette/vignette.hlsl DESTINATION &quot;${NOCTO_PLUGIN_DIR}&quot;)
+</code></pre>
+<h3>template/my_plugin.cpp</h3><pre><code class="lang-cpp">// Template Nocto plugin: an &quot;Invert&quot; video filter (D3D11 pixel shader) plus a hotkey action.
+// Rename ids/names, then build with the SDK CMakeLists.txt. See https://lukeroundy.github.io/nocto-releases/plugins.html
+#include &quot;nocto_plugin.h&quot;
+#include &lt;d3d11.h&gt;
+#include &lt;d3dcompiler.h&gt;
+#include &lt;cstring&gt;
+
+static const nocto_host* g_host;
+static void Log(int level, const char* m) { if (g_host) g_host-&gt;log(g_host-&gt;plugin, level, m); }
+
+static const char kShader[] = R&quot;(
+cbuffer P : register(b0) { float amount; float3 pad; };
+Texture2D src : register(t0); SamplerState samp : register(s0);
+struct V { float4 pos : SV_Position; float2 uv : TEXCOORD0; };
+V vs(uint id : SV_VertexID) { V o; o.uv = float2((id &lt;&lt; 1) &amp; 2, id &amp; 2); o.pos = float4(o.uv * float2(2, -2) + float2(-1, 1), 0, 1); return o; }
+float4 ps(V i) : SV_Target { float4 c = src.Sample(samp, i.uv); c.rgb = lerp(c.rgb, 1.0 - c.rgb, amount); return c; }
+)&quot;;
+
+struct Invert {
+    ID3D11VertexShader* vs = nullptr; ID3D11PixelShader* ps = nullptr;
+    ID3D11Buffer* cb = nullptr; ID3D11SamplerState* samp = nullptr;
+};
+template &lt;class T&gt; static void SafeRelease(T*&amp; p) { if (p) { p-&gt;Release(); p = nullptr; } }
+static void InvertDestroy(void* p) {
+    auto* f = static_cast&lt;Invert*&gt;(p);
+    if (!f) return;
+    SafeRelease(f-&gt;vs); SafeRelease(f-&gt;ps); SafeRelease(f-&gt;cb); SafeRelease(f-&gt;samp);
+    delete f;
+}
+static bool Compile(const char* entry, const char* target, ID3DBlob** out) {
+    ID3DBlob* err = nullptr;
+    HRESULT hr = D3DCompile(kShader, sizeof(kShader) - 1, &quot;my_plugin&quot;, nullptr, nullptr, entry, target, 0, 0, out, &amp;err);
+    if (FAILED(hr)) Log(NOCTO_LOG_ERROR, err ? (const char*)err-&gt;GetBufferPointer() : &quot;D3DCompile failed&quot;);
+    if (err) err-&gt;Release();
+    return SUCCEEDED(hr);
+}
+static void* InvertCreate(void* device) {
+    auto* dev = static_cast&lt;ID3D11Device*&gt;(device);
+    auto* f = new Invert;
+    ID3DBlob* vsb = nullptr; ID3DBlob* psb = nullptr;
+    bool ok = Compile(&quot;vs&quot;, &quot;vs_5_0&quot;, &amp;vsb) &amp;&amp; Compile(&quot;ps&quot;, &quot;ps_5_0&quot;, &amp;psb) &amp;&amp;
+              SUCCEEDED(dev-&gt;CreateVertexShader(vsb-&gt;GetBufferPointer(), vsb-&gt;GetBufferSize(), nullptr, &amp;f-&gt;vs)) &amp;&amp;
+              SUCCEEDED(dev-&gt;CreatePixelShader(psb-&gt;GetBufferPointer(), psb-&gt;GetBufferSize(), nullptr, &amp;f-&gt;ps));
+    if (vsb) vsb-&gt;Release();
+    if (psb) psb-&gt;Release();
+    D3D11_BUFFER_DESC bd{16, D3D11_USAGE_DYNAMIC, D3D11_BIND_CONSTANT_BUFFER, D3D11_CPU_ACCESS_WRITE};
+    D3D11_SAMPLER_DESC sd{}; sd.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+    sd.AddressU = sd.AddressV = sd.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP; sd.MaxLOD = D3D11_FLOAT32_MAX;
+    ok = ok &amp;&amp; SUCCEEDED(dev-&gt;CreateBuffer(&amp;bd, nullptr, &amp;f-&gt;cb)) &amp;&amp; SUCCEEDED(dev-&gt;CreateSamplerState(&amp;sd, &amp;f-&gt;samp));
+    if (!ok) { InvertDestroy(f); return nullptr; }   // NULL: Nocto passes the video through
+    Log(NOCTO_LOG_INFO, &quot;Invert filter created&quot;);
+    return f;
+}
+static int InvertProcess(void* p, void* context, void* in_srv, void* out_rtv, uint32_t w, uint32_t h, const float* values, double) {
+    auto* f = static_cast&lt;Invert*&gt;(p);
+    if (!f) return 0;                                  // create failed -&gt; pass through
+    auto* ctx = static_cast&lt;ID3D11DeviceContext*&gt;(context);
+    D3D11_MAPPED_SUBRESOURCE m{};
+    if (FAILED(ctx-&gt;Map(f-&gt;cb, 0, D3D11_MAP_WRITE_DISCARD, 0, &amp;m))) return 0;
+    float c[4] = {values[0], 0, 0, 0}; memcpy(m.pData, c, sizeof c);
+    ctx-&gt;Unmap(f-&gt;cb, 0);
+    // Nocto does not preserve pipeline state: set everything this draw uses.
+    auto* rtv = static_cast&lt;ID3D11RenderTargetView*&gt;(out_rtv);
+    auto* srv = static_cast&lt;ID3D11ShaderResourceView*&gt;(in_srv);
+    D3D11_VIEWPORT vp{0, 0, float(w), float(h), 0, 1};
+    ctx-&gt;OMSetRenderTargets(1, &amp;rtv, nullptr);
+    ctx-&gt;OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
+    ctx-&gt;RSSetViewports(1, &amp;vp);
+    ctx-&gt;RSSetState(nullptr);
+    ctx-&gt;IASetInputLayout(nullptr);
+    ctx-&gt;IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    ctx-&gt;VSSetShader(f-&gt;vs, nullptr, 0);
+    ctx-&gt;PSSetShader(f-&gt;ps, nullptr, 0);
+    ctx-&gt;PSSetConstantBuffers(0, 1, &amp;f-&gt;cb);
+    ctx-&gt;PSSetSamplers(0, 1, &amp;f-&gt;samp);
+    ctx-&gt;PSSetShaderResources(0, 1, &amp;srv);
+    ctx-&gt;Draw(3, 0);
+    ID3D11ShaderResourceView* nul = nullptr;
+    ctx-&gt;PSSetShaderResources(0, 1, &amp;nul);           // unbind the input before Nocto reuses it as a target
+    return 1;
+}
+static const nocto_prop kInvertProps[] = {{&quot;amount&quot;, &quot;Amount&quot;, NOCTO_PROP_FLOAT, 1.f, 0.f, 1.f}};
+static const nocto_video_filter_desc kInvert = {&quot;invert&quot;, &quot;Invert (my plugin)&quot;, kInvertProps, 1, InvertCreate, InvertDestroy, InvertProcess};
+
+static void Hello(void*) { Log(NOCTO_LOG_INFO, &quot;Hello from my plugin&quot;); }
+static const nocto_hotkey_desc kHello = {&quot;hello&quot;, &quot;My plugin: say hello&quot;, Hello, nullptr};
+
+extern &quot;C&quot; NOCTO_EXPORT uint32_t nocto_plugin_abi(void) { return NOCTO_PLUGIN_ABI; }
+extern &quot;C&quot; NOCTO_EXPORT int nocto_plugin_load(const nocto_host* host, nocto_plugin_info* info) {
+    if (host-&gt;abi != NOCTO_PLUGIN_ABI) return 0;
+    g_host = host;
+    info-&gt;abi = NOCTO_PLUGIN_ABI; info-&gt;name = &quot;My Plugin&quot;; info-&gt;version = &quot;1.0.0&quot;; info-&gt;author = &quot;You&quot;;
+    info-&gt;description = &quot;Template: Invert video filter + hello hotkey.&quot;;
+    if (!host-&gt;register_video_filter(host-&gt;plugin, &amp;kInvert)) Log(NOCTO_LOG_WARN, &quot;video filter not registered&quot;);
+    host-&gt;register_hotkey(host-&gt;plugin, &amp;kHello);
+    return 1;
+}
+extern &quot;C&quot; NOCTO_EXPORT void nocto_plugin_unload(void) { g_host = nullptr; }
+</code></pre></section>
+
+<section id="samples"><h2>Sample plugins (full source)</h2>
+<h3>sample_source.dll</h3><p>Four features in one DLL: <i>Color Bars</i> source (CPU-filled BGRA texture, colour/speed/width properties), <i>Simple Gain</i> audio filter, <i>Frame Counter</i> output (logs totals on stop), and a <i>toggle bar</i> hotkey. Ships in <code>&lt;Nocto&gt;\plugins</code>.</p>
+<pre><code class="lang-cpp">// Nocto sample plugin (C++): &quot;Color Bars&quot; source, &quot;Simple Gain&quot; audio filter, &quot;Frame Counter&quot; output, &quot;Toggle Bar&quot; hotkey.
+// Build: see docs/PLUGINS.md (any MSVC DLL that includes nocto_plugin.h). Copy the DLL to %LOCALAPPDATA%\Nocto\plugins.
+#include &quot;nocto_plugin.h&quot;
+#include &lt;d3d11.h&gt;
+#include &lt;cmath&gt;
+#include &lt;cstdio&gt;
+#include &lt;vector&gt;
+
+static const nocto_host* g_host;
+static volatile long g_showBar = 1;
+static void Log(const char* m) { if (g_host) g_host-&gt;log(g_host-&gt;plugin, NOCTO_LOG_INFO, m); }
+
+// ---------------- source: solid colour + moving bar (top 10%), CPU-filled BGRA texture ----------------
+struct Bars {
+    ID3D11Device* dev; ID3D11Texture2D* tex = nullptr; ID3D11ShaderResourceView* srv = nullptr;
+    uint32_t w = 640, h = 360; uint32_t color; float speed; std::vector&lt;uint32_t&gt; px;
+};
+static const nocto_prop kBarsProps[] = {
+    {&quot;color&quot;, &quot;Background&quot;, NOCTO_PROP_COLOR, float(0x3080FF), 0, float(0xFFFFFF)},
+    {&quot;speed&quot;, &quot;Bar speed&quot;, NOCTO_PROP_FLOAT, 0.25f, 0.f, 2.f},
+    {&quot;width&quot;, &quot;Width&quot;, NOCTO_PROP_INT, 640, 64, 1920},
+};
+static void BarsApply(Bars* b, const float* v) { b-&gt;color = (uint32_t)v[0]; b-&gt;speed = v[1]; b-&gt;w = (uint32_t)v[2] &amp; ~1u; if (b-&gt;w &lt; 64) b-&gt;w = 64; b-&gt;h = b-&gt;w * 9 / 16; }
+static void* BarsCreate(void* device, const float* v) {
+    auto* b = new Bars{static_cast&lt;ID3D11Device*&gt;(device)};
+    BarsApply(b, v);
+    D3D11_TEXTURE2D_DESC td{b-&gt;w, b-&gt;h, 1, 1, DXGI_FORMAT_B8G8R8A8_UNORM, {1, 0}, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE};
+    if (FAILED(b-&gt;dev-&gt;CreateTexture2D(&amp;td, nullptr, &amp;b-&gt;tex)) || FAILED(b-&gt;dev-&gt;CreateShaderResourceView(b-&gt;tex, nullptr, &amp;b-&gt;srv))) { delete b; return nullptr; }
+    b-&gt;px.resize(size_t(b-&gt;w) * b-&gt;h);
+    char m[96]; snprintf(m, sizeof m, &quot;Color Bars created %ux%u&quot;, b-&gt;w, b-&gt;h); Log(m);
+    return b;
+}
+static void BarsDestroy(void* p) { auto* b = (Bars*)p; if (b-&gt;srv) b-&gt;srv-&gt;Release(); if (b-&gt;tex) b-&gt;tex-&gt;Release(); delete b; }
+static void BarsUpdate(void* p, const float* v) { auto* b = (Bars*)p; b-&gt;color = (uint32_t)v[0]; b-&gt;speed = v[1]; }
+static void* BarsRender(void* p, void* context, double t, uint32_t* w, uint32_t* h) {
+    auto* b = (Bars*)p; auto* ctx = static_cast&lt;ID3D11DeviceContext*&gt;(context);
+    const uint32_t bg = 0xFF000000u | b-&gt;color;
+    const uint32_t barX = uint32_t(std::fmod(t * b-&gt;speed, 1.0) * b-&gt;w), barW = b-&gt;w / 16, barH = b-&gt;h / 10;
+    for (uint32_t y = 0; y &lt; b-&gt;h; ++y) {
+        uint32_t* row = b-&gt;px.data() + size_t(y) * b-&gt;w;
+        for (uint32_t x = 0; x &lt; b-&gt;w; ++x) row[x] = (g_showBar &amp;&amp; y &lt; barH &amp;&amp; x &gt;= barX &amp;&amp; x &lt; barX + barW) ? 0xFFFFFFFFu : bg;
+    }
+    ctx-&gt;UpdateSubresource(b-&gt;tex, 0, nullptr, b-&gt;px.data(), b-&gt;w * 4, 0);
+    *w = b-&gt;w; *h = b-&gt;h;
+    return b-&gt;srv;
+}
+static const nocto_source_desc kBars = {&quot;color_bars&quot;, &quot;Color Bars (sample)&quot;, kBarsProps, 3, BarsCreate, BarsDestroy, BarsUpdate, BarsRender};
+
+// ---------------- audio filter: gain ----------------
+static const nocto_prop kGainProps[] = {{&quot;gain&quot;, &quot;Gain (linear)&quot;, NOCTO_PROP_FLOAT, 1.f, 0.f, 4.f}};
+struct Gain { uint32_t ch; };
+static void* GainCreate(uint32_t, uint32_t ch) { return new Gain{ch}; }
+static void GainDestroy(void* p) { delete (Gain*)p; }
+static void GainProcess(void* p, float* x, uint32_t frames, const float* v) { const uint32_t n = frames * ((Gain*)p)-&gt;ch; for (uint32_t i = 0; i &lt; n; ++i) x[i] *= v[0]; }
+static const nocto_audio_filter_desc kGain = {&quot;gain&quot;, &quot;Simple Gain (sample)&quot;, kGainProps, 1, GainCreate, GainDestroy, GainProcess};
+
+// ---------------- output: counts program frames / audio ----------------
+struct Counter { unsigned long long frames = 0, samples = 0; uint32_t w = 0, h = 0; };
+static void* CounterStart(void*, const float*) { Log(&quot;Frame Counter started&quot;); return new Counter; }
+static void CounterStop(void* p) {
+    auto* c = (Counter*)p; char m[160];
+    snprintf(m, sizeof m, &quot;Frame Counter stopped: frames=%llu size=%ux%u audio_frames=%llu&quot;, c-&gt;frames, c-&gt;w, c-&gt;h, c-&gt;samples); Log(m);
+    delete c;
+}
+static void CounterVideo(void* p, void*, void*, uint32_t w, uint32_t h, int64_t) { auto* c = (Counter*)p; c-&gt;frames++; c-&gt;w = w; c-&gt;h = h; }
+static void CounterAudio(void* p, const float*, uint32_t frames, uint32_t, uint32_t, int64_t) { ((Counter*)p)-&gt;samples += frames; }
+static const nocto_output_desc kCounter = {&quot;frame_counter&quot;, &quot;Frame Counter (sample)&quot;, nullptr, 0, CounterStart, CounterStop, CounterVideo, CounterAudio};
+
+// ---------------- hotkey ----------------
+static void ToggleBar(void*) { g_showBar = !g_showBar; Log(g_showBar ? &quot;bar on&quot; : &quot;bar off&quot;); }
+static const nocto_hotkey_desc kToggle = {&quot;toggle_bar&quot;, &quot;Color Bars: toggle bar&quot;, ToggleBar, nullptr};
+
+extern &quot;C&quot; NOCTO_EXPORT uint32_t nocto_plugin_abi(void) { return NOCTO_PLUGIN_ABI; }
+extern &quot;C&quot; NOCTO_EXPORT int nocto_plugin_load(const nocto_host* host, nocto_plugin_info* info) {
+    g_host = host;
+    info-&gt;abi = NOCTO_PLUGIN_ABI; info-&gt;name = &quot;Sample Source&quot;; info-&gt;version = &quot;1.0.0&quot;; info-&gt;author = &quot;Nocto&quot;;
+    info-&gt;description = &quot;Sample C++ plugin: animated colour source, gain audio filter, frame-counter output, hotkey.&quot;;
+    host-&gt;register_source(host-&gt;plugin, &amp;kBars);
+    host-&gt;register_audio_filter(host-&gt;plugin, &amp;kGain);
+    host-&gt;register_output(host-&gt;plugin, &amp;kCounter);
+    host-&gt;register_hotkey(host-&gt;plugin, &amp;kToggle);
+    return 1;
+}
+extern &quot;C&quot; NOCTO_EXPORT void nocto_plugin_unload(void) { g_host = nullptr; }</code></pre>
+<h3>Vignette (shader-only)</h3><p>See <a href="#shader">Shader-only plugins</a> for the full manifest and HLSL.</p></section>
+
+<section id="debug"><h2>Debugging tips & plugins.log</h2>
+<ul><li><b>Log</b>: <code>%LOCALAPPDATA%\Nocto\plugins.log</code> (append-only) and the bottom of File &rsaquo; Plugins&hellip; (last 500 lines). Typical lines:
+<pre><code class="lang-text">06:12:03 sample_source.dll: loaded Sample Source 1.0.0 (4 features)
+06:12:03 vignette.json: loaded Vignette (sample shader) 1.0.0 (1 features)
+06:12:03 my_plugin.dll: FAILED - ABI 2 not supported (host ABI 1)
+06:12:03 loaded 3 plugin(s), 5 feature(s)
+06:12:09 sample_source.dll [info] Color Bars created 640x360
+06:13:40 sample_source/frame_counter: output started
+06:20:11 crash_test.dll: crashed in video filter process (exception 0xC0000005) - plugin disabled</code></pre></li>
+<li>Messages also go to <code>OutputDebugString</code> prefixed <code>[plugins]</code> (view with DebugView or the VS Output window).</li>
+<li><b>Attach a debugger</b>: Visual Studio &rsaquo; Debug &rsaquo; Attach to Process &rsaquo; <code>Nocto.exe</code>, build your DLL with <code>RelWithDebInfo</code> and keep the PDB next to the DLL. Note that first-chance access violations are caught by Nocto's guard; enable <i>break when thrown</i> for 0xC0000005 to stop at the fault.</li>
+<li><b>D3D debug layer</b>: run your logic in a small test app with <code>D3D11_CREATE_DEVICE_DEBUG</code>; Nocto's device is created without it.</li>
+<li>Common load errors: <i>LoadLibrary failed (126)</i> = missing dependency DLL (use <code>/MT</code>, or put it next to your DLL; check with <code>dumpbin /dependents</code>); <i>(193)</i> = 32-bit DLL; <i>not a Nocto plugin</i> = exports missing or C++-mangled (check <code>dumpbin /exports</code>).</li>
+<li>Shader plugins: the compile error text includes <code>vignette.hlsl(line,col)</code> &mdash; line numbers refer to your file (the prepended header uses <code>#line 1</code>).</li></ul></section>
+
+<section id="faq"><h2>FAQ</h2>
+<dl><dt>Can I use D3D12, Vulkan or CUDA?</dt><dd>Only through interop you set up yourself (e.g. shared NT handles). The ABI gives you D3D11 objects; everything must end up in a D3D11 texture/view.</dd>
+<dt>Can a source have its own audio?</dt><dd>Not in ABI 1. Sources are video-only; use a separate audio device or a future ABI extension.</dd>
+<dt>How do I store state that isn't a number (a file path, text)?</dt><dd>Properties are numeric in ABI 1. Store extra data yourself, e.g. a JSON file in <code>%LOCALAPPDATA%\Nocto\plugins\&lt;yourplugin&gt;\</code>.</dd>
+<dt>Why isn't <code>update</code> / <code>destroy</code> / <code>nocto_plugin_unload</code> called?</dt><dd>See the notes in each section: in 0.4 source settings changes recreate the instance, filter instances live until exit, and DLLs are never unloaded. Write code that works whether or not these are called.</dd>
+<dt>Will my plugin break when Nocto updates?</dt><dd>Not while the ABI stays 1. A new ABI would be announced in the release notes; old plugins are then refused with a clear log message rather than loaded.</dd>
+<dt>Can I ship a plugin with dependencies?</dt><dd>Yes, next to the DLL in the same folder (loaded with <code>LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR</code>). Avoid names that collide with Nocto's own DLLs.</dd>
+<dt>Does the plugin work for 32-bit games / game capture?</dt><dd>Plugins run inside Nocto (64-bit) only; they never run inside games.</dd>
+<dt>Is the HDR canvas different?</dt><dd>Yes: filters receive FP16 scRGB. Avoid assuming 0..1 range and avoid <code>saturate()</code> on colour if you want to keep HDR highlights.</dd>
+</dl></section>
+
+<section id="download"><h2>Downloads</h2>
+<ul><li><a href="sdk/nocto-plugin-sdk-1.0.zip">nocto-plugin-sdk-1.0.zip</a> &mdash; header, samples, template, CMake</li>
+<li><a href="sdk/nocto_plugin.h" download>nocto_plugin.h</a> &mdash; the header alone</li>
+<li><a href="https://github.com/lukeroundy/nocto-releases/releases/latest">Nocto installer</a></li></ul>
+<h3>nocto_plugin.h</h3><pre><code class="lang-c">/* nocto_plugin.h - Nocto plugin C ABI (version 1).
+ *
+ * A plugin is a DLL exporting:
+ *     NOCTO_EXPORT uint32_t nocto_plugin_abi(void);                                   // return NOCTO_PLUGIN_ABI
+ *     NOCTO_EXPORT int      nocto_plugin_load(const nocto_host* host, nocto_plugin_info* info);   // 1 = ok
+ *     NOCTO_EXPORT void     nocto_plugin_unload(void);                                // optional
+ * nocto_plugin_load fills `info` and registers features through `host`. Descriptors (and every string / array they point
+ * to) must stay valid until unload - use static storage. Nocto copies nothing it does not need.
+ *
+ * DLLs are loaded from %LOCALAPPDATA%\Nocto\plugins and from the &quot;plugins&quot; folder next to Nocto.exe.
+ * Shader-only video filters need no DLL: a &lt;name&gt;.json manifest + .hlsl file (see docs/PLUGINS.md).
+ *
+ * Threads: sources, video filters and outputs&#x27; video callback run on the render thread with the D3D11 immediate
+ * context locked (do not lock it yourself, do not block). Audio filters run on the mixer thread (10 ms chunks).
+ * Outputs&#x27; audio callback runs on the audio thread. Hotkey callbacks run on the UI thread.
+ * Crashes (access violations etc.) inside any callback are caught: the plugin is disabled and the error shown in
+ * the Plugins window; Nocto keeps running. Do not rely on this for normal error handling.
+ *
+ * Properties: every feature describes its settings as an array of nocto_prop; Nocto draws the settings UI and passes
+ * the current values as a float array in the same order (bool 0/1, int, colour 0xRRGGBB as float).
+ */
+#ifndef NOCTO_PLUGIN_H
+#define NOCTO_PLUGIN_H
+#include &lt;stdint.h&gt;
+
+#ifdef __cplusplus
+extern &quot;C&quot; {
+#endif
+
+#define NOCTO_PLUGIN_ABI 1u
+#if defined(_WIN32)
+#define NOCTO_EXPORT __declspec(dllexport)
+#else
+#define NOCTO_EXPORT
+#endif
+
+typedef enum nocto_prop_type { NOCTO_PROP_FLOAT = 0, NOCTO_PROP_INT = 1, NOCTO_PROP_BOOL = 2, NOCTO_PROP_COLOR = 3 } nocto_prop_type;
+typedef struct nocto_prop {
+    const char* id;          /* stable key */
+    const char* label;       /* shown in the UI */
+    int32_t type;            /* nocto_prop_type */
+    float def, min, max;
+} nocto_prop;
+
+typedef enum nocto_log_level { NOCTO_LOG_INFO = 0, NOCTO_LOG_WARN = 1, NOCTO_LOG_ERROR = 2 } nocto_log_level;
+
+/* ---- source: produces a texture every frame ---- */
+typedef struct nocto_source_desc {
+    const char* id;          /* unique within the plugin */
+    const char* name;        /* &quot;Add source&quot; menu label */
+    const nocto_prop* props; uint32_t prop_count;
+    /* device: ID3D11Device*. Return an instance pointer (NULL = failure). */
+    void* (*create)(void* device, const float* values);
+    void (*destroy)(void* inst);
+    void (*update)(void* inst, const float* values);                 /* settings changed (optional) */
+    /* context: ID3D11DeviceContext*. Return ID3D11ShaderResourceView* of a BGRA8/RGBA8 texture (sRGB-encoded,
+       straight alpha) owned by the plugin and valid until the next call; set *w/*h. NULL = draw nothing. */
+    void* (*render)(void* inst, void* context, double time_sec, uint32_t* w, uint32_t* h);
+} nocto_source_desc;
+
+/* ---- video filter: in texture -&gt; out render target (same size / format) ---- */
+typedef struct nocto_video_filter_desc {
+    const char* id; const char* name;
+    const nocto_prop* props; uint32_t prop_count;
+    void* (*create)(void* device);
+    void (*destroy)(void* inst);
+    /* in_srv: ID3D11ShaderResourceView*, out_rtv: ID3D11RenderTargetView* (bound state is not preserved by Nocto;
+       set everything you use). Return 1 if out was written, 0 to pass the input through unchanged. */
+    int (*process)(void* inst, void* context, void* in_srv, void* out_rtv, uint32_t w, uint32_t h, const float* values, double time_sec);
+} nocto_video_filter_desc;
+
+/* ---- audio filter: in-place, interleaved float ---- */
+typedef struct nocto_audio_filter_desc {
+    const char* id; const char* name;
+    const nocto_prop* props; uint32_t prop_count;
+    void* (*create)(uint32_t sample_rate, uint32_t channels);
+    void (*destroy)(void* inst);
+    void (*process)(void* inst, float* samples, uint32_t frames, const float* values);
+} nocto_audio_filter_desc;
+
+/* ---- output: receives the program (canvas) frames + mixed audio while started from the Plugins window ---- */
+typedef struct nocto_output_desc {
+    const char* id; const char* name;
+    const nocto_prop* props; uint32_t prop_count;
+    void* (*start)(void* device, const float* values);
+    void (*stop)(void* inst);
+    /* canvas_srv: ID3D11ShaderResourceView* (BGRA8 sRGB, or FP16 scRGB on HDR canvases), pts in 100 ns QPC units */
+    void (*video)(void* inst, void* context, void* canvas_srv, uint32_t w, uint32_t h, int64_t pts);
+    void (*audio)(void* inst, const float* samples, uint32_t frames, uint32_t sample_rate, uint32_t channels, int64_t pts);
+} nocto_output_desc;
+
+/* ---- hotkey action: listed in Settings &gt; Hotkeys ---- */
+typedef struct nocto_hotkey_desc {
+    const char* id; const char* label;
+    void (*pressed)(void* user);
+    void* user;
+} nocto_hotkey_desc;
+
+/* ---- scripting hook (reserved): a future script host registers here. Nocto 1.x returns 0 (unsupported). ---- */
+typedef struct nocto_script_engine_desc {
+    const char* id; const char* name; const char* file_extension;
+    int (*run_file)(void* user, const char* utf8_path);
+    void* user;
+} nocto_script_engine_desc;
+
+typedef struct nocto_host {
+    uint32_t abi;            /* NOCTO_PLUGIN_ABI of the host */
+    const char* host_version;
+    void* plugin;            /* opaque handle, pass back to every call */
+    void (*log)(void* plugin, int32_t level, const char* utf8_message);
+    int (*register_source)(void* plugin, const nocto_source_desc* d);
+    int (*register_video_filter)(void* plugin, const nocto_video_filter_desc* d);
+    int (*register_audio_filter)(void* plugin, const nocto_audio_filter_desc* d);
+    int (*register_output)(void* plugin, const nocto_output_desc* d);
+    int (*register_hotkey)(void* plugin, const nocto_hotkey_desc* d);
+    int (*register_script_engine)(void* plugin, const nocto_script_engine_desc* d);
+} nocto_host;
+
+typedef struct nocto_plugin_info {
+    uint32_t abi;            /* set to NOCTO_PLUGIN_ABI */
+    const char* name;
+    const char* version;
+    const char* author;
+    const char* description;
+} nocto_plugin_info;
+
+typedef uint32_t (*nocto_plugin_abi_fn)(void);
+typedef int (*nocto_plugin_load_fn)(const nocto_host* host, nocto_plugin_info* info);
+typedef void (*nocto_plugin_unload_fn)(void);
+
+#ifdef __cplusplus
+}
+#endif
+#endif /* NOCTO_PLUGIN_H */</code></pre></section>
+
+<footer>Nocto &copy; 2026 Luke Roundy &middot; Plugin ABI 1</footer></main></div>
+<script src="assets/hl.js"></script></body></html>
