@@ -1,8 +1,8 @@
 {
-  "version": "0.5.2",
-  "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.5.2/Nocto-Setup-0.5.2.exe",
-  "sha256": "099c0019e2ea8294621c4f2fd097fbeb4f1297a069e23075fc377ee8d8269297",
-  "notes": "Nocto 0.5.2: high-DPI and small-window layout fixes\n- Works at every display scale from 100% to 300% and in small windows\n- Sharp text, logo and icons at high DPI; adapts when moved between monitors\n- Fixed stats under the Settings button, overlapping timeline headers and ruler labels, cut-off editor toolbar and transport\n- Settings, mixer, sources, inspector and multistream list fit at every scale",
+  "version": "0.5.3",
+  "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.5.3/Nocto-Setup-0.5.3.exe",
+  "sha256": "6c9e81f157074a997fdb16a0b92062efe517881d474fd7cd7c1b9769fb6f7f56",
+  "notes": "Nocto 0.5.3: Windows on ARM\n- Native Windows ARM64 build (Snapdragon X)\n- Fixed a crash when finishing some MP4 recordings\n- Falls back to an available encoder if the saved one is missing\n- New software H.264 encoder for GPUs without a hardware encoder",
   "min_version": "0.0.0",
   "platforms": {
     "windows-x64": {
@@ -10,16 +10,18 @@
       "arch": "x64",
       "os": "windows",
       "status": "available",
-      "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.5.2/Nocto-Setup-0.5.2.exe",
-      "sha256": "099c0019e2ea8294621c4f2fd097fbeb4f1297a069e23075fc377ee8d8269297",
+      "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.5.3/Nocto-Setup-0.5.3.exe",
+      "sha256": "6c9e81f157074a997fdb16a0b92062efe517881d474fd7cd7c1b9769fb6f7f56",
       "requirements": "Windows 10/11 x64"
     },
     "windows-arm64": {
       "label": "Windows",
       "arch": "ARM64",
       "os": "windows",
-      "status": "coming_soon",
-      "requirements": "Windows 11 on ARM (Snapdragon)"
+      "status": "available",
+      "requirements": "Windows 11 on ARM (Snapdragon)",
+      "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.5.3/Nocto-Setup-0.5.3-arm64.exe",
+      "sha256": "26ac05ec14946ffedfe4aef2665cc8eef4596a3dfa4b20497cf09cd18c32f2ee"
     },
     "macos-arm64": {
       "label": "macOS",
