@@ -3,5 +3,35 @@
   "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.5.2/Nocto-Setup-0.5.2.exe",
   "sha256": "099c0019e2ea8294621c4f2fd097fbeb4f1297a069e23075fc377ee8d8269297",
   "notes": "Nocto 0.5.2: high-DPI and small-window layout fixes\n- Works at every display scale from 100% to 300% and in small windows\n- Sharp text, logo and icons at high DPI; adapts when moved between monitors\n- Fixed stats under the Settings button, overlapping timeline headers and ruler labels, cut-off editor toolbar and transport\n- Settings, mixer, sources, inspector and multistream list fit at every scale",
-  "min_version": "0.0.0"
+  "min_version": "0.0.0",
+  "platforms": {
+    "windows-x64": {
+      "label": "Windows",
+      "arch": "x64",
+      "os": "windows",
+      "status": "available",
+      "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.5.2/Nocto-Setup-0.5.2.exe",
+      "sha256": "099c0019e2ea8294621c4f2fd097fbeb4f1297a069e23075fc377ee8d8269297",
+      "requirements": "Windows 10/11 x64"
+    },
+    "windows-arm64": {
+      "label": "Windows",
+      "arch": "ARM64",
+      "os": "windows",
+      "status": "coming_soon",
+      "requirements": "Windows 11 on ARM (Snapdragon)"
+    },
+    "macos-arm64": {
+      "label": "macOS",
+      "arch": "Apple silicon",
+      "os": "macos",
+      "status": "coming_soon"
+    },
+    "linux-x64": {
+      "label": "Linux",
+      "arch": "x64",
+      "os": "linux",
+      "status": "coming_soon"
+    }
+  }
 }

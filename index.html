@@ -10,11 +10,13 @@ header img{width:140px;filter:drop-shadow(0 0 32px #7c3aed88)}h1{font-size:56px;
 .btn:hover{filter:brightness(1.1)}.small{color:var(--m);font-size:13px;margin-top:12px}.small a{color:var(--v)}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:64px}
 .f{background:var(--card);border:1px solid #2a2340;border-radius:16px;padding:20px}.f h3{margin:0 0 6px;color:var(--v)}.f p{margin:0;color:var(--m)}
+.pk{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:18px auto 0;max-width:640px}.pk button{background:var(--card);color:var(--t);border:1px solid #2a2340;border-radius:12px;padding:10px 14px;font:inherit;font-size:14px;cursor:pointer;min-width:130px}.pk button b{display:block}.pk button span{color:var(--m);font-size:12px}.pk button.sel{border-color:var(--v);box-shadow:0 0 0 1px var(--v)}.pk button:disabled{opacity:.45;cursor:not-allowed}
 footer{text-align:center;color:var(--m);font-size:13px;margin-top:64px}
 </style></head><body><main><nav style="display:flex;gap:20px;justify-content:center;margin-bottom:28px"><a href="plugins.html" style="color:var(--v);text-decoration:none">Plugin SDK</a><a href="https://github.com/lukeroundy/nocto-releases/releases" style="color:var(--v);text-decoration:none">Releases</a><a href="https://github.com/lukeroundy/nocto-releases/issues/new/choose" target="_blank" rel="noopener" style="color:var(--v);text-decoration:none">Report a bug</a><a href="https://www.patreon.com/noctoapp" target="_blank" rel="noopener" style="color:var(--v);text-decoration:none">Support on Patreon</a></nav>
 
 <header><img src="assets/logo.png" alt="Nocto moon logo"><h1>Nocto</h1><p class="tag">Record and stream without your frames ever leaving the GPU.</p>
 <a class="btn" id="dl" href="https://github.com/lukeroundy/nocto-releases/releases/download/v0.5.2/Nocto-Setup-0.5.2.exe">Download for Windows</a>
+<div class="pk" id="pk" role="radiogroup" aria-label="Choose your platform"></div>
 <p class="small" id="ver">v0.5.2 &middot; Windows 10/11 x64 &middot; <a href="https://github.com/lukeroundy/nocto-releases/releases">all releases</a></p></header>
 <section class="grid">
 <div class="f"><h3>Zero-copy pipeline</h3><p>Capture, convert and encode on the GPU with NVENC, Intel QSV/Arc and other hardware encoders.</p></div>
@@ -68,5 +70,25 @@ footer{text-align:center;color:var(--m);font-size:13px;margin-top:64px}
 <a class="btn" href="https://www.patreon.com/noctoapp" target="_blank" rel="noopener">Support on Patreon</a></section>
 <footer>Nocto &copy; 2026 Luke Roundy &middot; Updates are delivered in-app and always verified by SHA-256. &middot; <a style="color:var(--v)" href="https://github.com/lukeroundy/nocto-releases/issues/new/choose">Report a bug</a> &middot; <a style="color:var(--v)" href="https://www.patreon.com/noctoapp" target="_blank" rel="noopener">Support on Patreon</a></footer>
 </main><script>
-fetch('latest.json').then(r=>r.json()).then(j=>{dl.href=j.url;ver.firstChild.textContent='v'+j.version+' \u00b7 Windows 10/11 x64 \u00b7 '}).catch(()=>{});
+// Platform picker: driven by latest.json "platforms" (add an entry to add an OS/arch; status "available" needs url).
+const PREF=['windows-x64','windows-arm64','macos-arm64','linux-x64'];
+function detect(){const ua=navigator.userAgent;let os=/Mac/.test(ua)?'macos':/Linux|X11/.test(ua)&&!/Android/.test(ua)?'linux':'windows';
+ const base=os+(os==='macos'?'-arm64':'-x64');
+ if(navigator.userAgentData&&navigator.userAgentData.getHighEntropyValues)
+  return navigator.userAgentData.getHighEntropyValues(['architecture','bitness','platform']).then(v=>{
+   const p=(v.platform||'').toLowerCase();os=p.startsWith('mac')?'macos':p==='linux'?'linux':p==='windows'?'windows':os;
+   return os+'-'+(v.architecture==='arm'?'arm64':'x64');}).catch(()=>base);
+ return Promise.resolve(base);}
+function render(j,det){const P=j.platforms||{'windows-x64':{label:'Windows',arch:'x64',status:'available',url:j.url,requirements:'Windows 10/11 x64'}};
+ const keys=Object.keys(P).sort((a,b)=>(PREF.indexOf(a)+99)%99-(PREF.indexOf(b)+99)%99);
+ let cur=P[det]&&P[det].status==='available'?det:keys.find(k=>P[k].status==='available');
+ function sel(k){cur=k;const p=P[k];dl.href=p.url;dl.textContent='Download for '+p.label+' '+p.arch;
+  ver.firstChild.textContent='v'+j.version+' \u00b7 '+(p.requirements||p.label+' '+p.arch)+' \u00b7 ';
+  [...pk.children].forEach(b=>{b.classList.toggle('sel',b.dataset.k===k);b.setAttribute('aria-checked',b.dataset.k===k)});}
+ pk.innerHTML='';for(const k of keys){const p=P[k],b=document.createElement('button');b.dataset.k=k;b.setAttribute('role','radio');
+  const ok=p.status==='available'&&p.url;b.disabled=!ok;
+  b.innerHTML='<b></b><span></span>';b.firstChild.textContent=p.label+' '+p.arch;
+  b.lastChild.textContent=ok?(k===det?'Detected':'Available'):'Coming soon';if(ok)b.onclick=()=>sel(k);pk.appendChild(b);}
+ if(cur)sel(cur);}
+Promise.all([fetch('latest.json').then(r=>r.json()),detect()]).then(([j,d])=>render(j,d)).catch(()=>{});
 </script></body></html>
