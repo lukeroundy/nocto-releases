@@ -1,8 +1,8 @@
 {
-  "version": "0.5.3",
-  "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.5.3/Nocto-Setup-0.5.3.exe",
-  "sha256": "6c9e81f157074a997fdb16a0b92062efe517881d474fd7cd7c1b9769fb6f7f56",
-  "notes": "Nocto 0.5.3: Windows on ARM\n- Native Windows ARM64 build (Snapdragon X)\n- Fixed a crash when finishing some MP4 recordings\n- Falls back to an available encoder if the saved one is missing\n- New software H.264 encoder for GPUs without a hardware encoder",
+  "version": "0.6.0",
+  "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.6.0/Nocto-Setup-0.6.0.exe",
+  "sha256": "85b443efeff9147f07ad7870ba5f59f1e55c11f77440439e6c0e04adf2e1408d",
+  "notes": "Nocto 0.6.0: Linux\n- First Linux release: AppImage for x86_64 (Wayland and X11, PipeWire, QuickSync/VAAPI/NVENC/software encoding)\n- Same UI, editor, plugins and browser sources as Windows\n- Linux limits: no game capture (use window capture), no in-app updater yet, HDR10 output is SDR only\n- Windows x64 and ARM64 behave as in 0.5.3",
   "min_version": "0.0.0",
   "platforms": {
     "windows-x64": {
@@ -10,8 +10,8 @@
       "arch": "x64",
       "os": "windows",
       "status": "available",
-      "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.5.3/Nocto-Setup-0.5.3.exe",
-      "sha256": "6c9e81f157074a997fdb16a0b92062efe517881d474fd7cd7c1b9769fb6f7f56",
+      "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.6.0/Nocto-Setup-0.6.0.exe",
+      "sha256": "85b443efeff9147f07ad7870ba5f59f1e55c11f77440439e6c0e04adf2e1408d",
       "requirements": "Windows 10/11 x64"
     },
     "windows-arm64": {
@@ -20,8 +20,8 @@
       "os": "windows",
       "status": "available",
       "requirements": "Windows 11 on ARM (Snapdragon)",
-      "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.5.3/Nocto-Setup-0.5.3-arm64.exe",
-      "sha256": "26ac05ec14946ffedfe4aef2665cc8eef4596a3dfa4b20497cf09cd18c32f2ee"
+      "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.6.0/Nocto-Setup-0.6.0-arm64.exe",
+      "sha256": "15bc2e63c65f2de4085a69c5a91ccb6226e06d392ed05321a2662209e4b4f793"
     },
     "macos-arm64": {
       "label": "macOS",
@@ -31,9 +31,14 @@
     },
     "linux-x64": {
       "label": "Linux",
-      "arch": "x64",
+      "arch": "x86_64",
       "os": "linux",
-      "status": "coming_soon"
+      "status": "available",
+      "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.6.0/Nocto-0.6.0-x86_64.AppImage",
+      "sha256": "f1e6c0f0a1e109363ea1b6e6387bbca5bd2cc6dfc99bea38a2b721f6c8347337",
+      "size": 121428472,
+      "requirements": "Linux x86_64 (Wayland or X11, PipeWire, Mesa 24+ or NVIDIA driver)",
+      "install": "<p><b>Install:</b> download the AppImage, then run <code>chmod +x Nocto-0.6.0-x86_64.AppImage</code> and start it with <code>./Nocto-0.6.0-x86_64.AppImage</code>.</p><p><b>Needs:</b> a Wayland or X11 desktop with PipeWire and xdg-desktop-portal, and your distribution's GPU drivers (Mesa 24+ for Intel/AMD, or the NVIDIA proprietary driver). Recommended: GStreamer plugins-base and plugins-good for browser source audio; v4l2loopback for the virtual camera in Discord/Zoom. No in-app updater on Linux yet.</p>"
     }
   }
 }

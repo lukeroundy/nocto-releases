@@ -8,6 +8,8 @@
  * to) must stay valid until unload - use static storage. Nocto copies nothing it does not need.
  *
  * DLLs are loaded from %LOCALAPPDATA%\Nocto\plugins and from the "plugins" folder next to Nocto.exe.
+ * Linux: the plugin is a shared library (.so) loaded with dlopen from ~/.local/share/Nocto/plugins (or $NOCTO_CONFIG_DIR/plugins)
+ * and <dir of the nocto binary>/plugins. Same ABI; only the graphics handles differ (see "Linux graphics handles" below).
  * Shader-only video filters need no DLL: a <name>.json manifest + .hlsl file (see docs/PLUGINS.md).
  *
  * Threads: sources, video filters and outputs' video callback run on the render thread with the D3D11 immediate
@@ -31,7 +33,7 @@ extern "C" {
 #if defined(_WIN32)
 #define NOCTO_EXPORT __declspec(dllexport)
 #else
-#define NOCTO_EXPORT
+#define NOCTO_EXPORT __attribute__((visibility("default")))
 #endif
 
 typedef enum nocto_prop_type { NOCTO_PROP_FLOAT = 0, NOCTO_PROP_INT = 1, NOCTO_PROP_BOOL = 2, NOCTO_PROP_COLOR = 3 } nocto_prop_type;
@@ -43,6 +45,15 @@ typedef struct nocto_prop {
 } nocto_prop;
 
 typedef enum nocto_log_level { NOCTO_LOG_INFO = 0, NOCTO_LOG_WARN = 1, NOCTO_LOG_ERROR = 2 } nocto_log_level;
+
+/* Linux graphics handles. There is no D3D11: every `device` / `context` argument is NULL and an OpenGL 3.3 core context is current on the
+ * calling thread (render thread for sources / video filters / output video). The host saves and restores its GL state around each call.
+ *   - "ID3D11ShaderResourceView*" = GL_TEXTURE_2D name stored in the pointer: (void*)(uintptr_t)name. Source textures are RGBA8, straight
+ *     alpha, row 0 of the uploaded data = top of the picture.
+ *   - "ID3D11RenderTargetView*" (video filter out) = framebuffer object name, already bound with the viewport set to w x h; draw into it.
+ *   - Video output gets the canvas texture name (RGBA8, row 0 = top).
+ * Video filters are called with in = texture name and out = FBO name; a filter must not keep GL objects bound. Link plugins with -lGL.
+ * A crash (SIGSEGV/SIGBUS/SIGFPE/SIGILL/SIGABRT) inside a callback is caught like on Windows; do not rely on it. */
 
 /* ---- source: produces a texture every frame ---- */
 typedef struct nocto_source_desc {

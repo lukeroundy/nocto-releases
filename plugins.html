@@ -1,11 +1,11 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Plugin SDK - Nocto</title><link rel="icon" href="assets/favicon.png"><link rel="stylesheet" href="assets/docs.css"></head><body>
 <header class="top"><a class="brand" href="./"><img src="assets/logo.png" alt="">Nocto</a><nav><a href="./">Home</a><a href="plugins.html" class="on">Plugin SDK</a><a href="https://github.com/lukeroundy/nocto-releases/releases">Releases</a><a href="https://www.patreon.com/noctoapp" target="_blank" rel="noopener">Patreon</a></nav><button id="toc-toggle" aria-label="Contents">&#9776;</button></header>
-<div class="wrap"><aside id="toc"><div class="tt">Contents</div><a href="#overview">Overview</a><a href="#types">Plugin types</a><a href="#abi">ABI & entry points</a><a href="#host">nocto_host</a><a href="#info">nocto_plugin_info</a><a href="#props">Properties & settings UI</a><a href="#source">Sources</a><a href="#vfilter">Video filters</a><a href="#texture">D3D11 texture contract</a><a href="#afilter">Audio filters</a><a href="#audio">Audio buffer format</a><a href="#output">Outputs</a><a href="#hotkey">Hotkey actions</a><a href="#script">Script engine (reserved)</a><a href="#enums">Enums, macros & typedefs</a><a href="#threads">Threading & lifetime</a><a href="#loading">Load paths, enable/disable</a><a href="#crash">Crash handling & limits</a><a href="#shader">Shader-only plugins</a><a href="#editor">Editor effects &amp; keyframes</a><a href="#first">Build your first plugin</a><a href="#samples">Sample plugins (full source)</a><a href="#debug">Debugging & plugins.log</a><a href="#faq">FAQ</a><a href="#download">Downloads</a></aside><main class="doc">
+<div class="wrap"><aside id="toc"><div class="tt">Contents</div><a href="#overview">Overview</a><a href="#types">Plugin types</a><a href="#abi">ABI & entry points</a><a href="#host">nocto_host</a><a href="#info">nocto_plugin_info</a><a href="#props">Properties & settings UI</a><a href="#source">Sources</a><a href="#vfilter">Video filters</a><a href="#texture">D3D11 texture contract</a><a href="#afilter">Audio filters</a><a href="#audio">Audio buffer format</a><a href="#output">Outputs</a><a href="#hotkey">Hotkey actions</a><a href="#script">Script engine (reserved)</a><a href="#enums">Enums, macros & typedefs</a><a href="#threads">Threading & lifetime</a><a href="#loading">Load paths, enable/disable</a><a href="#crash">Crash handling & limits</a><a href="#shader">Shader-only plugins</a><a href="#editor">Editor effects &amp; keyframes</a><a href="#linux">Linux plugins (.so)</a><a href="#first">Build your first plugin</a><a href="#samples">Sample plugins (full source)</a><a href="#debug">Debugging & plugins.log</a><a href="#faq">FAQ</a><a href="#download">Downloads</a></aside><main class="doc">
 <section id="overview"><h1>Nocto Plugin SDK</h1>
 <p class="lead">Extend Nocto with native C/C++ DLLs or shader-only filters. ABI version <b>1</b>, Nocto 0.4.0+.</p>
 <div class="dl"><a class="btn" href="sdk/nocto-plugin-sdk-1.0.zip">Download SDK (zip)</a> <a class="btn ghost" href="sdk/nocto_plugin.h" download>nocto_plugin.h</a></div>
-<p>A plugin is a Windows x64 DLL that exports a small plain-C interface defined in a single header,
+<p>A plugin is a Windows x64 DLL (or, since Nocto 0.6.0, a Linux x86_64 shared library, see <a href="#linux">Linux</a>) that exports a small plain-C interface defined in a single header,
 <code>nocto_plugin.h</code> (no dependencies besides <code>&lt;stdint.h&gt;</code>). All GPU objects are Direct3D 11 objects on Nocto's
 own device, passed as <code>void*</code>, so frames never leave the GPU. Simple video effects need no compiler at all: a JSON manifest plus
 an HLSL pixel shader is a complete plugin.</p>
@@ -297,6 +297,15 @@ float4 main(float4 pos : SV_Position, float2 uv : TEXCOORD0) : SV_Target {
 <p>Effects are saved in the <code>.gprproj</code> JSON per clip as <code>{"id","key","enabled","params":[{"id","v","keys":[{"t","v","interp"}]}],"path","maskShape","maskInvert","mask":[...]}</code>. <code>t</code> is clip-local seconds and <code>interp</code> is 0 linear, 1 ease, 2 hold. Params are matched by <code>id</code>, so adding params to your manifest later keeps old projects working: missing ids use your <code>default</code>.</p>
 </section>
 
+<section id="linux"><h2>Linux plugins (.so)</h2>
+<p>Nocto 0.6.0 for Linux (x86_64 AppImage) loads the same plugins through the same ABI 1. The header, the property system, audio filters, outputs, hotkeys and the editor effects work unchanged. What differs is the graphics API and the file layout.</p>
+<ul><li><b>Format and folders:</b> code plugins are shared libraries (<code>*.so</code>, loaded with <code>dlopen</code>) and shader manifests are <code>*.json</code> as on Windows. Folders: <code>~/.local/share/Nocto/plugins/</code> (or <code>$XDG_DATA_HOME/Nocto/plugins</code>, or <code>$NOCTO_CONFIG_DIR/plugins</code> if set) and the <code>plugins</code> folder next to the <code>nocto</code> binary (inside the AppImage that is read-only; use the per-user folder).</li>
+<li><b>No D3D11:</b> every <code>device</code> / <code>context</code> argument is <code>NULL</code> and an <b>OpenGL 3.3 core</b> context is current on the calling thread. A &ldquo;shader resource view&rdquo; is a <code>GL_TEXTURE_2D</code> name and a &ldquo;render target view&rdquo; is a framebuffer object name, both passed as <code>(void*)(uintptr_t)name</code>. Source textures are RGBA8, straight alpha, row 0 = top of the picture. For video filters <code>in</code> is a texture name and <code>out</code> is an FBO that is already bound with the viewport set; draw into it and leave nothing bound. Nocto saves and restores its own GL state around every call.</li>
+<li><b>Build:</b> <code>g++ -shared -fPIC -O2 -Iinclude my_plugin.cpp -o my_plugin.so -lGL</code> (CMake: <code>add_library(x MODULE ...)</code> with <code>PREFIX ""</code>). The sample in the SDK zip builds for both platforms from the same source.</li>
+<li><b>Shader-only plugins:</b> the same HLSL file is translated to GLSL by the host. Alternatively give the manifest <code>"glsl": "file.glsl"</code> instead of <code>"shader"</code> and write <code>vec4 fx(vec4 pos, vec2 uv)</code> directly (<code>src</code>, <code>PARAM(i)</code>, <code>TEXSIZE</code>, <code>TIME</code> are available). A compile error is shown in the Plugins window and the plugin is not loaded.</li>
+<li><b>Crash isolation</b> uses signal handlers (SIGSEGV, SIGBUS, SIGFPE, SIGILL, SIGABRT), so a fault in a callback disables the plugin like on Windows. A stack overflow is not caught.</li>
+<li><b>Not available on Linux:</b> <code>register_script_engine</code> (returns 0). The HDR canvas is not available either (Linux output is SDR).</li></ul></section>
+
 <section id="first"><h2>Build your first plugin (CMake + MSVC)</h2>
 <ol><li>Install <b>Visual Studio 2022</b> or <b>Build Tools 2022</b> with "Desktop development with C++" (includes the Windows SDK) and <b>CMake 3.20+</b>.</li>
 <li>Download and unzip <a href="sdk/nocto-plugin-sdk-1.0.zip">nocto-plugin-sdk-1.0.zip</a>:
@@ -448,20 +457,33 @@ extern &quot;C&quot; NOCTO_EXPORT void nocto_plugin_unload(void) { g_host = null
 <section id="samples"><h2>Sample plugins (full source)</h2>
 <h3>sample_source.dll</h3><p>Four features in one DLL: <i>Color Bars</i> source (CPU-filled BGRA texture, colour/speed/width properties), <i>Simple Gain</i> audio filter, <i>Frame Counter</i> output (logs totals on stop), and a <i>toggle bar</i> hotkey. Ships in <code>&lt;Nocto&gt;\plugins</code>.</p>
 <pre><code class="lang-cpp">// Nocto sample plugin (C++): &quot;Color Bars&quot; source, &quot;Simple Gain&quot; audio filter, &quot;Frame Counter&quot; output, &quot;Toggle Bar&quot; hotkey.
-// Build: see docs/PLUGINS.md (any MSVC DLL that includes nocto_plugin.h). Copy the DLL to %LOCALAPPDATA%\Nocto\plugins.
+// Build: see docs/PLUGINS.md (Windows: any MSVC DLL that includes nocto_plugin.h, copy it to %LOCALAPPDATA%\Nocto\plugins;
+// Linux: a shared library linked with -lGL, copy it to ~/.local/share/Nocto/plugins). The same source builds on both: the
+// texture handles are D3D11 objects on Windows and plain OpenGL texture names on Linux (see nocto_plugin.h).
 #include &quot;nocto_plugin.h&quot;
+#ifdef _WIN32
 #include &lt;d3d11.h&gt;
+#else
+#define GL_GLEXT_PROTOTYPES 1
+#include &lt;GL/gl.h&gt;
+#include &lt;GL/glext.h&gt;
+#include &lt;stdint.h&gt;
+#endif
 #include &lt;cmath&gt;
 #include &lt;cstdio&gt;
 #include &lt;vector&gt;
 
 static const nocto_host* g_host;
-static volatile long g_showBar = 1;
+static volatile int g_showBar = 1;
 static void Log(const char* m) { if (g_host) g_host-&gt;log(g_host-&gt;plugin, NOCTO_LOG_INFO, m); }
 
 // ---------------- source: solid colour + moving bar (top 10%), CPU-filled BGRA texture ----------------
 struct Bars {
+#ifdef _WIN32
     ID3D11Device* dev; ID3D11Texture2D* tex = nullptr; ID3D11ShaderResourceView* srv = nullptr;
+#else
+    GLuint tex = 0;
+#endif
     uint32_t w = 640, h = 360; uint32_t color; float speed; std::vector&lt;uint32_t&gt; px;
 };
 static const nocto_prop kBarsProps[] = {
@@ -471,27 +493,53 @@ static const nocto_prop kBarsProps[] = {
 };
 static void BarsApply(Bars* b, const float* v) { b-&gt;color = (uint32_t)v[0]; b-&gt;speed = v[1]; b-&gt;w = (uint32_t)v[2] &amp; ~1u; if (b-&gt;w &lt; 64) b-&gt;w = 64; b-&gt;h = b-&gt;w * 9 / 16; }
 static void* BarsCreate(void* device, const float* v) {
+#ifdef _WIN32
     auto* b = new Bars{static_cast&lt;ID3D11Device*&gt;(device)};
     BarsApply(b, v);
     D3D11_TEXTURE2D_DESC td{b-&gt;w, b-&gt;h, 1, 1, DXGI_FORMAT_B8G8R8A8_UNORM, {1, 0}, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE};
     if (FAILED(b-&gt;dev-&gt;CreateTexture2D(&amp;td, nullptr, &amp;b-&gt;tex)) || FAILED(b-&gt;dev-&gt;CreateShaderResourceView(b-&gt;tex, nullptr, &amp;b-&gt;srv))) { delete b; return nullptr; }
+#else
+    (void)device;   // Linux: NULL; a GL 3.3 context is current
+    auto* b = new Bars;
+    BarsApply(b, v);
+    glGenTextures(1, &amp;b-&gt;tex); glBindTexture(GL_TEXTURE_2D, b-&gt;tex);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, (GLsizei)b-&gt;w, (GLsizei)b-&gt;h, 0, GL_BGRA, GL_UNSIGNED_BYTE, nullptr);
+#endif
     b-&gt;px.resize(size_t(b-&gt;w) * b-&gt;h);
     char m[96]; snprintf(m, sizeof m, &quot;Color Bars created %ux%u&quot;, b-&gt;w, b-&gt;h); Log(m);
     return b;
 }
-static void BarsDestroy(void* p) { auto* b = (Bars*)p; if (b-&gt;srv) b-&gt;srv-&gt;Release(); if (b-&gt;tex) b-&gt;tex-&gt;Release(); delete b; }
+static void BarsDestroy(void* p) {
+    auto* b = (Bars*)p;
+#ifdef _WIN32
+    if (b-&gt;srv) b-&gt;srv-&gt;Release(); if (b-&gt;tex) b-&gt;tex-&gt;Release();
+#else
+    if (b-&gt;tex) glDeleteTextures(1, &amp;b-&gt;tex);
+#endif
+    delete b;
+}
 static void BarsUpdate(void* p, const float* v) { auto* b = (Bars*)p; b-&gt;color = (uint32_t)v[0]; b-&gt;speed = v[1]; }
 static void* BarsRender(void* p, void* context, double t, uint32_t* w, uint32_t* h) {
-    auto* b = (Bars*)p; auto* ctx = static_cast&lt;ID3D11DeviceContext*&gt;(context);
+    auto* b = (Bars*)p;
     const uint32_t bg = 0xFF000000u | b-&gt;color;
     const uint32_t barX = uint32_t(std::fmod(t * b-&gt;speed, 1.0) * b-&gt;w), barW = b-&gt;w / 16, barH = b-&gt;h / 10;
     for (uint32_t y = 0; y &lt; b-&gt;h; ++y) {
         uint32_t* row = b-&gt;px.data() + size_t(y) * b-&gt;w;
         for (uint32_t x = 0; x &lt; b-&gt;w; ++x) row[x] = (g_showBar &amp;&amp; y &lt; barH &amp;&amp; x &gt;= barX &amp;&amp; x &lt; barX + barW) ? 0xFFFFFFFFu : bg;
     }
-    ctx-&gt;UpdateSubresource(b-&gt;tex, 0, nullptr, b-&gt;px.data(), b-&gt;w * 4, 0);
     *w = b-&gt;w; *h = b-&gt;h;
+#ifdef _WIN32
+    static_cast&lt;ID3D11DeviceContext*&gt;(context)-&gt;UpdateSubresource(b-&gt;tex, 0, nullptr, b-&gt;px.data(), b-&gt;w * 4, 0);
     return b-&gt;srv;
+#else
+    (void)context;
+    glBindTexture(GL_TEXTURE_2D, b-&gt;tex);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, (GLsizei)b-&gt;w, (GLsizei)b-&gt;h, GL_BGRA, GL_UNSIGNED_BYTE, b-&gt;px.data());
+    return (void*)(uintptr_t)b-&gt;tex;   // GL texture name (the host restores its GL state afterwards)
+#endif
 }
 static const nocto_source_desc kBars = {&quot;color_bars&quot;, &quot;Color Bars (sample)&quot;, kBarsProps, 3, BarsCreate, BarsDestroy, BarsUpdate, BarsRender};
 
@@ -573,6 +621,8 @@ extern &quot;C&quot; NOCTO_EXPORT void nocto_plugin_unload(void) { g_host = null
  * to) must stay valid until unload - use static storage. Nocto copies nothing it does not need.
  *
  * DLLs are loaded from %LOCALAPPDATA%\Nocto\plugins and from the &quot;plugins&quot; folder next to Nocto.exe.
+ * Linux: the plugin is a shared library (.so) loaded with dlopen from ~/.local/share/Nocto/plugins (or $NOCTO_CONFIG_DIR/plugins)
+ * and &lt;dir of the nocto binary&gt;/plugins. Same ABI; only the graphics handles differ (see &quot;Linux graphics handles&quot; below).
  * Shader-only video filters need no DLL: a &lt;name&gt;.json manifest + .hlsl file (see docs/PLUGINS.md).
  *
  * Threads: sources, video filters and outputs&#x27; video callback run on the render thread with the D3D11 immediate
@@ -596,7 +646,7 @@ extern &quot;C&quot; {
 #if defined(_WIN32)
 #define NOCTO_EXPORT __declspec(dllexport)
 #else
-#define NOCTO_EXPORT
+#define NOCTO_EXPORT __attribute__((visibility(&quot;default&quot;)))
 #endif
 
 typedef enum nocto_prop_type { NOCTO_PROP_FLOAT = 0, NOCTO_PROP_INT = 1, NOCTO_PROP_BOOL = 2, NOCTO_PROP_COLOR = 3 } nocto_prop_type;
@@ -608,6 +658,15 @@ typedef struct nocto_prop {
 } nocto_prop;
 
 typedef enum nocto_log_level { NOCTO_LOG_INFO = 0, NOCTO_LOG_WARN = 1, NOCTO_LOG_ERROR = 2 } nocto_log_level;
+
+/* Linux graphics handles. There is no D3D11: every `device` / `context` argument is NULL and an OpenGL 3.3 core context is current on the
+ * calling thread (render thread for sources / video filters / output video). The host saves and restores its GL state around each call.
+ *   - &quot;ID3D11ShaderResourceView*&quot; = GL_TEXTURE_2D name stored in the pointer: (void*)(uintptr_t)name. Source textures are RGBA8, straight
+ *     alpha, row 0 of the uploaded data = top of the picture.
+ *   - &quot;ID3D11RenderTargetView*&quot; (video filter out) = framebuffer object name, already bound with the viewport set to w x h; draw into it.
+ *   - Video output gets the canvas texture name (RGBA8, row 0 = top).
+ * Video filters are called with in = texture name and out = FBO name; a filter must not keep GL objects bound. Link plugins with -lGL.
+ * A crash (SIGSEGV/SIGBUS/SIGFPE/SIGILL/SIGABRT) inside a callback is caught like on Windows; do not rely on it. */
 
 /* ---- source: produces a texture every frame ---- */
 typedef struct nocto_source_desc {
