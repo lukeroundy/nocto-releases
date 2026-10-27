@@ -34,12 +34,13 @@
       "arch": "x86_64",
       "os": "linux",
       "status": "available",
-      "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.7.2/Nocto-0.7.2-x86_64.AppImage",
-      "sha256": "ebf1b1116cb311fb66d51d0fb7cbaa954a3267aac659852c5894c49167d4feaf",
-      "size": 121989624,
+      "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.7.3/Nocto-0.7.3-x86_64.AppImage",
+      "sha256": "540ec430ef50718b42b0e1c9c3573318624128c19b6ec4570ce6f99148f48c85",
+      "size": 122059256,
       "requirements": "Linux x86_64 (Wayland or X11, PipeWire, Mesa 24+ or NVIDIA driver)",
-      "install": "<p><b>Install:</b> download the AppImage, then run <code>chmod +x Nocto-0.7.2-x86_64.AppImage</code> and start it with <code>./Nocto-0.7.2-x86_64.AppImage</code>.</p><p><b>Needs:</b> a Wayland or X11 desktop with PipeWire and xdg-desktop-portal, and your distribution's GPU drivers (Mesa 24+ for Intel/AMD, or the NVIDIA proprietary driver). Recommended: GStreamer plugins-base and plugins-good for browser source audio; the v4l2loopback camera driver for the virtual camera in Discord/Zoom (Nocto offers a one-click setup with your desktop's password dialog, no terminal needed). No in-app updater on Linux yet.</p>",
-      "version": "0.7.2"
+      "install": "<p><b>Install:</b> download the AppImage, then run <code>chmod +x Nocto-0.7.3-x86_64.AppImage</code> and start it with <code>./Nocto-0.7.3-x86_64.AppImage</code>.</p><p><b>Needs:</b> a Wayland or X11 desktop with PipeWire and xdg-desktop-portal, and your distribution's GPU drivers (Mesa 24+ for Intel/AMD, or the NVIDIA proprietary driver). Recommended: GStreamer plugins-base and plugins-good for browser source audio; the v4l2loopback camera driver for the virtual camera in Discord/Zoom (Nocto offers a one-click setup with your desktop's password dialog, no terminal needed). Updates install from inside Nocto after this version (checksum verified, with automatic rollback); if you are on 0.7.2 or older, download this one manually once.</p>",
+      "version": "0.7.3",
+      "notes": "Nocto 0.7.3 (Linux): Window Capture now works via a \"Choose window...\" picker; Display/Window Capture properties can reopen the picker; AppImage self-update with checksum verification, backup and automatic rollback\n- Linux only: Windows stays on 0.7.0\n- If you are on 0.7.2 or older, download this version manually once"
     }
   }
 }
