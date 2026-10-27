@@ -16,9 +16,9 @@ footer{text-align:center;color:var(--m);font-size:13px;margin-top:64px}
 </style></head><body><main><nav style="display:flex;gap:20px;justify-content:center;margin-bottom:28px"><a href="plugins.html" style="color:var(--v);text-decoration:none">Plugin SDK</a><a href="https://github.com/lukeroundy/nocto-releases/releases" style="color:var(--v);text-decoration:none">Releases</a><a href="https://github.com/lukeroundy/nocto-releases/issues/new/choose" target="_blank" rel="noopener" style="color:var(--v);text-decoration:none">Report a bug</a><a href="https://www.patreon.com/noctoapp" target="_blank" rel="noopener" style="color:var(--v);text-decoration:none">Support on Patreon</a></nav>
 
 <header><img src="assets/logo.png" alt="Nocto moon logo"><h1>Nocto</h1><p class="tag">Record and stream without your frames ever leaving the GPU. Now on Windows and Linux.</p>
-<a class="btn" id="dl" href="https://github.com/lukeroundy/nocto-releases/releases/download/v0.6.0/Nocto-Setup-0.6.0.exe">Download for Windows</a>
+<a class="btn" id="dl" href="https://github.com/lukeroundy/nocto-releases/releases/download/v0.7.0/Nocto-Setup-0.7.0.exe">Download for Windows</a>
 <div class="pk" id="pk" role="radiogroup" aria-label="Choose your platform"></div>
-<p class="small" id="ver">v0.6.0 &middot; Windows 10/11 x64 &middot; <a href="https://github.com/lukeroundy/nocto-releases/releases">all releases</a></p>
+<p class="small" id="ver">v0.7.0 &middot; Windows 10/11 x64 &middot; <a href="https://github.com/lukeroundy/nocto-releases/releases">all releases</a></p>
 <div class="inst" id="inst" hidden></div></header>
 <section class="grid">
 <div class="f"><h3>Zero-copy pipeline</h3><p>Capture, convert and encode on the GPU with NVENC, Intel QSV/Arc and other hardware encoders on Windows. Linux records with QuickSync, VAAPI, NVENC or a software encoder.</p></div>
@@ -31,10 +31,21 @@ footer{text-align:center;color:var(--m);font-size:13px;margin-top:64px}
 <div class="f"><h3>Browser sources</h3><p>Built-in web engine (Servo) for alerts and overlays, on Windows and Linux.</p></div>
 <div class="f"><h3>Plugins</h3><p>Native source plugins (.dll on Windows, .so on Linux) and shader filters. <a style="color:var(--v)" href="plugins.html">Plugin SDK docs &rarr;</a></p></div>
 <div class="f"><h3>HDR &amp; AV1</h3><p>HEVC/AV1 hardware encoding with correct HDR metadata.</p></div>
+<div class="f"><h3>Share and import</h3><p>Export scenes or your whole profile (stream keys never included) and import your OBS Studio scene collections.</p></div>
 <div class="f"><h3>GPU video editor</h3><p>Trim, split and export, plus GPU effects with keyframes: color, curves, LUTs, blur, chroma key, masks, titles, shapes, speed ramps, transitions and picture-in-picture.</p></div>
 </section>
 <section style="margin-top:56px;background:var(--card);border:1px solid #2a2340;border-radius:16px;padding:24px 28px">
 <h2 style="margin:0 0 8px;color:var(--v)">What's new</h2>
+<h3 style="margin:16px 0 4px">0.7.0: editor menus, linked audio, sharing and OBS import</h3>
+<ul style="color:var(--m);margin:0">
+<li>Video editor: right-click menus on clips, the timeline, the media bin and the program monitor (duplicate, copy and paste, lock, solo, markers and more)</li>
+<li>Separate audio from video: detach a clip's sound into its own audio clip; linked audio and video move, trim and delete together</li>
+<li>Audio waveforms and frame thumbnails on timeline clips, cached on disk so projects reopen instantly</li>
+<li>Export and import scenes (<code>.nocto-scenes</code>) or your full profile (<code>.nocto-profile</code>: settings, scenes and dock layout). Stream keys and other secrets are never written to the file</li>
+<li>Import an OBS Studio scene collection: scenes, groups, transforms, crops, display/window/camera/image/color/browser/text sources, audio devices and common filters, with a report of anything approximated or skipped</li>
+<li>Linux AppImage: proper icon at every size and AppStream metadata</li>
+<li>Limits: OBS transitions, hotkeys and media/VLC/NDI sources are not imported; text sources become browser sources; placement of items with unknown size is approximate. Linux limits from 0.6.0 still apply</li>
+</ul>
 <h3 style="margin:16px 0 4px">0.6.0: Nocto for Linux</h3>
 <ul style="color:var(--m);margin:0">
 <li>First Linux release: an AppImage for x86_64, tested on CachyOS with KDE Plasma on Wayland. Download, <code>chmod +x</code> and run</li>

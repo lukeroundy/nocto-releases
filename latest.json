@@ -1,8 +1,8 @@
 {
-  "version": "0.6.0",
-  "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.6.0/Nocto-Setup-0.6.0.exe",
-  "sha256": "85b443efeff9147f07ad7870ba5f59f1e55c11f77440439e6c0e04adf2e1408d",
-  "notes": "Nocto 0.6.0: Linux\n- First Linux release: AppImage for x86_64 (Wayland and X11, PipeWire, QuickSync/VAAPI/NVENC/software encoding)\n- Same UI, editor, plugins and browser sources as Windows\n- Linux limits: no game capture (use window capture), no in-app updater yet, HDR10 output is SDR only\n- Windows x64 and ARM64 behave as in 0.5.3",
+  "version": "0.7.0",
+  "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.7.0/Nocto-Setup-0.7.0.exe",
+  "sha256": "1f59e07d531152c69703f4098f5291b8d7020ff0ef7330704c7c74ea35450483",
+  "notes": "Nocto 0.7.0: editor menus, linked audio, scene and profile sharing, OBS import\n- Video editor: right-click menus, separate audio from video with linked audio clips, waveforms and frame thumbnails\n- Export and import scenes (.nocto-scenes) and your full profile (.nocto-profile, stream keys are never included)\n- Import OBS Studio scene collections with an import report\n- Linux AppImage: proper icon and AppStream metadata\n- Windows x64, ARM64 and Linux builds otherwise behave as in 0.6.0",
   "min_version": "0.0.0",
   "platforms": {
     "windows-x64": {
@@ -10,8 +10,8 @@
       "arch": "x64",
       "os": "windows",
       "status": "available",
-      "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.6.0/Nocto-Setup-0.6.0.exe",
-      "sha256": "85b443efeff9147f07ad7870ba5f59f1e55c11f77440439e6c0e04adf2e1408d",
+      "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.7.0/Nocto-Setup-0.7.0.exe",
+      "sha256": "1f59e07d531152c69703f4098f5291b8d7020ff0ef7330704c7c74ea35450483",
       "requirements": "Windows 10/11 x64"
     },
     "windows-arm64": {
@@ -20,8 +20,8 @@
       "os": "windows",
       "status": "available",
       "requirements": "Windows 11 on ARM (Snapdragon)",
-      "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.6.0/Nocto-Setup-0.6.0-arm64.exe",
-      "sha256": "15bc2e63c65f2de4085a69c5a91ccb6226e06d392ed05321a2662209e4b4f793"
+      "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.7.0/Nocto-Setup-0.7.0-arm64.exe",
+      "sha256": "3209b571ff07c1088835d5bb8eba94e0a08ea561717b42fd17972951fbf984b1"
     },
     "macos-arm64": {
       "label": "macOS",
@@ -34,11 +34,11 @@
       "arch": "x86_64",
       "os": "linux",
       "status": "available",
-      "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.6.0/Nocto-0.6.0-x86_64.AppImage",
-      "sha256": "f1e6c0f0a1e109363ea1b6e6387bbca5bd2cc6dfc99bea38a2b721f6c8347337",
-      "size": 121428472,
+      "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.7.0/Nocto-0.7.0-x86_64.AppImage",
+      "sha256": "d2c85a7b45bf4200976a6ab1c9801bdb6e376f02c686e615f034961e6f82628f",
+      "size": 121928184,
       "requirements": "Linux x86_64 (Wayland or X11, PipeWire, Mesa 24+ or NVIDIA driver)",
-      "install": "<p><b>Install:</b> download the AppImage, then run <code>chmod +x Nocto-0.6.0-x86_64.AppImage</code> and start it with <code>./Nocto-0.6.0-x86_64.AppImage</code>.</p><p><b>Needs:</b> a Wayland or X11 desktop with PipeWire and xdg-desktop-portal, and your distribution's GPU drivers (Mesa 24+ for Intel/AMD, or the NVIDIA proprietary driver). Recommended: GStreamer plugins-base and plugins-good for browser source audio; v4l2loopback for the virtual camera in Discord/Zoom. No in-app updater on Linux yet.</p>"
+      "install": "<p><b>Install:</b> download the AppImage, then run <code>chmod +x Nocto-0.7.0-x86_64.AppImage</code> and start it with <code>./Nocto-0.7.0-x86_64.AppImage</code>.</p><p><b>Needs:</b> a Wayland or X11 desktop with PipeWire and xdg-desktop-portal, and your distribution's GPU drivers (Mesa 24+ for Intel/AMD, or the NVIDIA proprietary driver). Recommended: GStreamer plugins-base and plugins-good for browser source audio; v4l2loopback for the virtual camera in Discord/Zoom. No in-app updater on Linux yet.</p>"
     }
   }
 }
