@@ -34,11 +34,12 @@
       "arch": "x86_64",
       "os": "linux",
       "status": "available",
-      "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.7.0/Nocto-0.7.0-x86_64.AppImage",
-      "sha256": "d2c85a7b45bf4200976a6ab1c9801bdb6e376f02c686e615f034961e6f82628f",
-      "size": 121928184,
+      "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.7.1/Nocto-0.7.1-x86_64.AppImage",
+      "sha256": "3f1008f489259b97d41999f940debc3f90741bde362a3d661b6852f3cc349b3a",
+      "size": 121932280,
       "requirements": "Linux x86_64 (Wayland or X11, PipeWire, Mesa 24+ or NVIDIA driver)",
-      "install": "<p><b>Install:</b> download the AppImage, then run <code>chmod +x Nocto-0.7.0-x86_64.AppImage</code> and start it with <code>./Nocto-0.7.0-x86_64.AppImage</code>.</p><p><b>Needs:</b> a Wayland or X11 desktop with PipeWire and xdg-desktop-portal, and your distribution's GPU drivers (Mesa 24+ for Intel/AMD, or the NVIDIA proprietary driver). Recommended: GStreamer plugins-base and plugins-good for browser source audio; v4l2loopback for the virtual camera in Discord/Zoom. No in-app updater on Linux yet.</p>"
+      "install": "<p><b>Install:</b> download the AppImage, then run <code>chmod +x Nocto-0.7.1-x86_64.AppImage</code> and start it with <code>./Nocto-0.7.1-x86_64.AppImage</code>.</p><p><b>Needs:</b> a Wayland or X11 desktop with PipeWire and xdg-desktop-portal, and your distribution's GPU drivers (Mesa 24+ for Intel/AMD, or the NVIDIA proprietary driver). Recommended: GStreamer plugins-base and plugins-good for browser source audio; v4l2loopback for the virtual camera in Discord/Zoom. No in-app updater on Linux yet.</p>",
+      "version": "0.7.1"
     }
   }
 }
