@@ -1,0 +1,65 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Plugins - Nocto</title><link rel="icon" href="assets/favicon.png"><link rel="stylesheet" href="assets/docs.css">
+<style>
+.doc{max-width:1000px;margin:auto;padding:24px 20px 80px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px;margin:20px 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 20px;display:flex;flex-direction:column;gap:8px}
+.card h3{margin:0;color:var(--t)}.card p{margin:0;color:var(--m);font-size:15px}
+.meta{display:flex;flex-wrap:wrap;gap:6px;font-size:12.5px}
+.tag{border:1px solid var(--line);border-radius:999px;padding:1px 9px;color:var(--m)}.tag.soon{border-color:#f59e0b;color:#f59e0b}.tag.ok{border-color:#34d399;color:#34d399}.tag.me{border-color:var(--v);color:var(--v)}
+.card ul{margin:0;padding-left:18px;color:var(--m);font-size:14px}
+.card .btn{margin:0;align-self:flex-start;font-size:15px;padding:8px 18px}.card .btn[aria-disabled=true]{opacity:.45;pointer-events:none;background:#2a2340}
+.hash{font:12px/1.4 Consolas,monospace;color:var(--m);word-break:break-all}
+details{color:var(--m);font-size:14px}summary{cursor:pointer;color:var(--v)}
+</style></head><body>
+<header class="top"><a class="brand" href="./"><img src="assets/logo.png" alt="">Nocto</a><nav><a href="./">Home</a><a href="plugin-library.html" class="on">Plugins</a><a href="plugins.html">Plugin SDK</a><a href="https://github.com/lukeroundy/nocto-releases/releases">Releases</a></nav></header>
+<main class="doc">
+<h1>Nocto plugins</h1>
+<p class="lead">Add features to Nocto. Download a plugin, drop it into your plugins folder and enable it, no terminal needed.</p>
+<div id="os" class="lead" style="font-size:15px"></div>
+<div id="grid" class="grid"><p>Loading plugins&hellip;</p></div>
+<noscript><p>This list needs JavaScript. The raw list is <a href="plugins.json">plugins.json</a>.</p></noscript>
+<h2>How to install</h2>
+<ol>
+<li>In Nocto open <b>File &rsaquo; Plugins&hellip;</b> and press <b>Open user plugins folder</b>.</li>
+<li>Copy the plugin's files (from the zip) into that folder. Windows: <code>%LOCALAPPDATA%\Nocto\plugins</code>. Linux: <code>~/.local/share/Nocto/plugins</code>.</li>
+<li>Enable the plugin in the Plugins window (or restart Nocto).</li>
+</ol>
+<p>Only install plugins you trust: native plugins run inside Nocto. Each download lists its SHA-256 so you can check the file.</p>
+<h2>Make your own</h2>
+<div id="tools"></div>
+<p><a class="btn ghost" href="plugins.html">Plugin SDK documentation</a></p>
+<footer>Nocto &middot; <a href="./">nocto-releases</a></footer>
+</main>
+<script>
+(function(){
+const OS_NAMES={'windows-x64':'Windows x64','windows-arm64':'Windows ARM64','linux-x64':'Linux x86_64','macos-arm64':'macOS (Apple silicon)',any:'All platforms'};
+const ua=navigator.userAgent;const mine=/Linux|X11/.test(ua)&&!/Android/.test(ua)?'linux':/Mac/.test(ua)?'macos':'windows';
+const el=(t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!==undefined)e.textContent=h;return e};
+const size=n=>n>1048576?(n/1048576).toFixed(1)+' MB':Math.max(1,Math.round(n/1024))+' KB';
+function card(p){
+ const c=el('div','card');c.appendChild(el('h3','',p.name));
+ const m=el('div','meta');
+ m.appendChild(el('span','tag '+(p.status==='available'?'ok':'soon'),p.status==='available'?'v'+p.version:'Coming soon'));
+ m.appendChild(el('span','tag',p.kind.replace('-',' ')));
+ (p.platforms||[]).forEach(x=>{const t=el('span','tag'+(x.indexOf(mine)===0?' me':''),OS_NAMES[x]||x);m.appendChild(t)});
+ c.appendChild(m);c.appendChild(el('p','',p.description));
+ if(p.features&&p.features.length){const u=el('ul');p.features.forEach(f=>u.appendChild(el('li','',f)));c.appendChild(u)}
+ const d=(p.downloads||[])[0];
+ if(d){
+  const a=el('a','btn','Download '+(d.file||'')+' ('+size(d.size)+')');a.href=d.url;a.setAttribute('download','');c.appendChild(a);
+  c.appendChild(el('div','hash','SHA-256: '+d.sha256));
+  if(p.install){const x=el('details');x.appendChild(el('summary','','Install'));x.appendChild(el('div','',p.install));c.appendChild(x)}
+ }else{const a=el('a','btn','Not available yet');a.setAttribute('aria-disabled','true');a.href='#';c.appendChild(a)}
+ return c;
+}
+fetch('plugins.json',{cache:'no-cache'}).then(r=>r.json()).then(j=>{
+ const g=document.getElementById('grid');g.textContent='';
+ (j.plugins||[]).slice().sort((a,b)=>(a.status==='available'?0:1)-(b.status==='available'?0:1)).forEach(p=>g.appendChild(card(p)));
+ const t=document.getElementById('tools');
+ (j.tools||[]).forEach(x=>{const c=el('div','card');c.appendChild(el('h3','',x.name+' '+x.version));c.appendChild(el('p','',x.description));
+  const a=el('a','btn','Download ('+size(x.size)+')');a.href=x.url;a.setAttribute('download','');c.appendChild(a);c.appendChild(el('div','hash','SHA-256: '+x.sha256));t.appendChild(c)});
+ document.getElementById('os').textContent='Detected: '+({linux:'Linux',macos:'macOS',windows:'Windows'}[mine])+' (matching platforms are highlighted).';
+}).catch(()=>{document.getElementById('grid').textContent='Could not load plugins.json.'});
+})();
+</script></body></html>

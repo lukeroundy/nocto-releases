@@ -1,0 +1,53 @@
+{
+  "schema": 1,
+  "updated": "2026-10-28",
+  "note": "To add a plugin, add one entry to \"plugins\". Downloads are only listed once a real file exists; status \"coming_soon\" entries have no downloads.",
+  "plugins": [
+    {
+      "id": "twitch",
+      "name": "Twitch",
+      "kind": "integration",
+      "version": "",
+      "status": "coming_soon",
+      "author": "Nocto",
+      "description": "Sign in to Twitch from inside Nocto (no stream key typing, no browser redirect server), edit your stream title, category and tags, and read and send chat in a dock next to your preview.",
+      "features": ["Sign in with a device code", "Edit stream title, category and tags", "Chat dock"],
+      "platforms": ["windows-x64", "windows-arm64", "linux-x64"],
+      "downloads": []
+    },
+    {
+      "id": "vignette",
+      "name": "Vignette (sample shader)",
+      "kind": "video-filter",
+      "version": "1.0.0",
+      "status": "available",
+      "author": "Nocto",
+      "description": "Shader-only video filter: darkens the edges of a source. Strength, radius and tint. No compiler needed, and a good starting point for your own shader filters.",
+      "features": ["Video filter and editor effect", "Strength / radius / tint"],
+      "platforms": ["windows-x64", "windows-arm64", "linux-x64"],
+      "min_nocto": "0.4.0",
+      "downloads": [
+        {
+          "platform": "any",
+          "file": "nocto-vignette-1.0.0.zip",
+          "url": "plugins/downloads/nocto-vignette-1.0.0.zip",
+          "sha256": "e387f320d4ef9ff49bcfb35f414522148f04021b4869c018ce6280641cbb61ff",
+          "size": 1273
+        }
+      ],
+      "install": "File > Plugins... > Open user plugins folder, copy the files from the zip into it, then enable the plugin in the Plugins window."
+    }
+  ],
+  "tools": [
+    {
+      "id": "sdk",
+      "name": "Nocto Plugin SDK",
+      "version": "1.0 (ABI 1)",
+      "description": "Header, CMake template and samples for writing native plugins and shader filters.",
+      "url": "sdk/nocto-plugin-sdk-1.0.zip",
+      "sha256": "a79e3e8767a3bd01e52ffef4a5a4c4eab46c0e210bc1ed39214c29cac62f426c",
+      "size": 11780,
+      "docs": "plugins.html"
+    }
+  ]
+}
