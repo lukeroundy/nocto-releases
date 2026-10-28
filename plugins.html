@@ -3,7 +3,7 @@
 <header class="top"><a class="brand" href="./"><img src="assets/logo.png" alt="">Nocto</a><nav><a href="./">Home</a><a href="plugin-library.html">Plugins</a><a href="plugins.html" class="on">Plugin SDK</a><a href="https://github.com/lukeroundy/nocto-releases/releases">Releases</a><a href="https://www.patreon.com/noctoapp" target="_blank" rel="noopener">Patreon</a></nav><button id="toc-toggle" aria-label="Contents">&#9776;</button></header>
 <div class="wrap"><aside id="toc"><div class="tt">Contents</div><a href="#overview">Overview</a><a href="#types">Plugin types</a><a href="#abi">ABI & entry points</a><a href="#host">nocto_host</a><a href="#info">nocto_plugin_info</a><a href="#props">Properties & settings UI</a><a href="#source">Sources</a><a href="#vfilter">Video filters</a><a href="#texture">D3D11 texture contract</a><a href="#afilter">Audio filters</a><a href="#audio">Audio buffer format</a><a href="#output">Outputs</a><a href="#hotkey">Hotkey actions</a><a href="#script">Script engine (reserved)</a><a href="#enums">Enums, macros & typedefs</a><a href="#threads">Threading & lifetime</a><a href="#loading">Load paths, enable/disable</a><a href="#crash">Crash handling & limits</a><a href="#shader">Shader-only plugins</a><a href="#editor">Editor effects &amp; keyframes</a><a href="#abi2">ABI 2: panels, settings, network</a><a href="#install">Installing &amp; zip format</a><a href="#linux">Linux plugins (.so)</a><a href="#first">Build your first plugin</a><a href="#samples">Sample plugins (full source)</a><a href="#debug">Debugging & plugins.log</a><a href="#faq">FAQ</a><a href="#download">Downloads</a></aside><main class="doc">
 <section id="overview"><h1>Nocto Plugin SDK</h1>
-<p class="lead">Extend Nocto with native C/C++ DLLs or shader-only filters. ABI version <b>2</b> (ABI 1 plugins still load), SDK 1.1. Nocto 0.4.0+ for ABI 1 features; ABI 2 needs the Nocto release that ships the plugin library (see <a href="#abi2">ABI 2</a>).</p>
+<p class="lead">Extend Nocto with native C/C++ DLLs or shader-only filters. ABI version <b>2</b> (ABI 1 plugins still load), SDK 1.1. Nocto 0.8.0 and newer (Windows and Linux) load ABI 1 and ABI 2 plugins; plugins that use ABI 2 features need Nocto 0.8.0 or newer (see <a href="#abi2">ABI 2</a>), while plugins that stay on ABI 1 also run on Nocto 0.4.0+ (Linux: 0.6.0+).</p>
 <div class="dl"><a class="btn" href="sdk/nocto-plugin-sdk-1.1.zip">Download SDK (zip)</a> <a class="btn ghost" href="sdk/nocto_plugin.h" download>nocto_plugin.h</a></div>
 <p>A plugin is a Windows x64 DLL (or, since Nocto 0.6.0, a Linux x86_64 shared library, see <a href="#linux">Linux</a>) that exports a small plain-C interface defined in a single header,
 <code>nocto_plugin.h</code> (no dependencies besides <code>&lt;stdint.h&gt;</code>). All GPU objects are Direct3D 11 objects on Nocto's
@@ -54,7 +54,7 @@ shutdown. Don't put essential cleanup (flushing files) there; do it in <code>des
     int (*register_script_engine)(void* plugin, const nocto_script_engine_desc* d);
 } nocto_host;</code></pre>
 <table><tr><th>Member</th><th>Meaning</th></tr>
-<tr><td><code>abi</code></td><td>Host ABI (1).</td></tr>
+<tr><td><code>abi</code></td><td>Host ABI: 2 in Nocto 0.8.0 and newer (older releases report 1).</td></tr>
 <tr><td><code>host_version</code></td><td>Display string, e.g. <code>"Nocto 1.0"</code>.</td></tr>
 <tr><td><code>plugin</code></td><td>Your opaque handle. Pass it as the first argument of every host call.</td></tr>
 <tr><td><code>log(plugin, level, msg)</code></td><td>Appends <code>HH:MM:SS &lt;file&gt; [info|warn|error] msg</code> to the Plugins window and <code>%LOCALAPPDATA%\Nocto\plugins.log</code>. UTF-8. <b>Callable from any thread, at any time</b> while the plugin is loaded (keep the <code>host</code> pointer; it stays valid for the process lifetime). <code>level</code> is clamped to 0&ndash;2.</td></tr>
@@ -182,7 +182,7 @@ typedef struct nocto_prop {
 
 <section id="enums"><h2>Enums, macros & typedefs</h2>
 <table><tr><th>Name</th><th>Value / type</th></tr>
-<tr><td><code>NOCTO_PLUGIN_ABI</code></td><td><code>1u</code></td></tr>
+<tr><td><code>NOCTO_PLUGIN_ABI</code></td><td><code>2u</code> (<code>NOCTO_PLUGIN_ABI_V1</code> = <code>1u</code>, for plugins that only use ABI 1 features)</td></tr>
 <tr><td><code>NOCTO_EXPORT</code></td><td><code>__declspec(dllexport)</code> on Windows</td></tr>
 <tr><td><code>nocto_prop_type</code></td><td><code>NOCTO_PROP_FLOAT=0, NOCTO_PROP_INT=1, NOCTO_PROP_BOOL=2, NOCTO_PROP_COLOR=3</code></td></tr>
 <tr><td><code>nocto_log_level</code></td><td><code>NOCTO_LOG_INFO=0, NOCTO_LOG_WARN=1, NOCTO_LOG_ERROR=2</code></td></tr>
@@ -312,7 +312,7 @@ float4 main(float4 pos : SV_Position, float2 uv : TEXCOORD0) : SV_Target {
 <p>Authors: a plain zip, flat or with one wrapping folder, holding only <code>*.dll</code> (Windows), <code>*.so</code> (Linux), <code>*.json</code>, <code>*.hlsl</code>, <code>*.glsl</code>, <code>*.md</code>, <code>*.txt</code>. Keep the file stem equal to the catalog <code>id</code> so Nocto can tell it is installed. Nocto refuses other file types, absolute or <code>..</code> paths, reserved Windows names, duplicate names, more than 64 files, more than 64 MiB per file or 128 MiB total, bad CRCs, and zips with nothing for the running OS. To list your plugin in the library add an entry to <code>plugins.json</code> with <code>platform</code> (<code>windows-x64</code>, <code>windows-arm64</code>, <code>linux-x64</code> or <code>any</code>), <code>url</code> (https, or relative) and a 64-hex <code>sha256</code>.</p></section>
 
 <section id="linux"><h2>Linux plugins (.so)</h2>
-<p>Nocto 0.6.0 for Linux (x86_64 AppImage) loads the same plugins through the same ABI 1. The header, the property system, audio filters, outputs, hotkeys and the editor effects work unchanged. What differs is the graphics API and the file layout.</p>
+<p>Nocto for Linux (x86_64 AppImage, since 0.6.0) loads the same plugins through the same ABI; Nocto 0.8.0 on Linux and on Windows loads both ABI 1 and ABI 2 plugins, including the ABI 2 panels, settings, secrets and network APIs. The header, the property system, audio filters, outputs, hotkeys and the editor effects work unchanged. What differs is the graphics API and the file layout.</p>
 <ul><li><b>Format and folders:</b> code plugins are shared libraries (<code>*.so</code>, loaded with <code>dlopen</code>) and shader manifests are <code>*.json</code> as on Windows. Folders: <code>~/.local/share/Nocto/plugins/</code> (or <code>$XDG_DATA_HOME/Nocto/plugins</code>, or <code>$NOCTO_CONFIG_DIR/plugins</code> if set) and the <code>plugins</code> folder next to the <code>nocto</code> binary (inside the AppImage that is read-only; use the per-user folder).</li>
 <li><b>No D3D11:</b> every <code>device</code> / <code>context</code> argument is <code>NULL</code> and an <b>OpenGL 3.3 core</b> context is current on the calling thread. A &ldquo;shader resource view&rdquo; is a <code>GL_TEXTURE_2D</code> name and a &ldquo;render target view&rdquo; is a framebuffer object name, both passed as <code>(void*)(uintptr_t)name</code>. Source textures are RGBA8, straight alpha, row 0 = top of the picture. For video filters <code>in</code> is a texture name and <code>out</code> is an FBO that is already bound with the viewport set; draw into it and leave nothing bound. Nocto saves and restores its own GL state around every call.</li>
 <li><b>Build:</b> <code>g++ -shared -fPIC -O2 -Iinclude my_plugin.cpp -o my_plugin.so -lGL</code> (CMake: <code>add_library(x MODULE ...)</code> with <code>PREFIX ""</code>). The sample in the SDK zip builds for both platforms from the same source.</li>
@@ -327,7 +327,11 @@ float4 main(float4 pos : SV_Position, float2 uv : TEXCOORD0) : SV_Target {
   CMakeLists.txt                 nocto_add_plugin() helper; builds sample + template
   README.md
   include/nocto_plugin.h
+  docs/PLUGINS.md                full reference
   samples/sample_source/sample_source.cpp
+  samples/api_demo/api_demo.cpp  ABI 2: panel, storage, HTTP, WebSocket, timers
+  samples/twitch/                full Twitch plugin source
+  samples/crash_test/            crash and bad-shader test plugin
   samples/shader_vignette/vignette.json, vignette.hlsl
   template/my_plugin.cpp         Invert video filter + hotkey</code></pre></li>
 <li>Edit <code>template/my_plugin.cpp</code>: change ids, names and <code>info</code>. To add a file of your own: <code>nocto_add_plugin(my-thing my_thing src/my_thing.cpp)</code> in <code>CMakeLists.txt</code>.</li>
@@ -612,10 +616,10 @@ extern &quot;C&quot; NOCTO_EXPORT void nocto_plugin_unload(void) { g_host = null
 
 <section id="faq"><h2>FAQ</h2>
 <dl><dt>Can I use D3D12, Vulkan or CUDA?</dt><dd>Only through interop you set up yourself (e.g. shared NT handles). The ABI gives you D3D11 objects; everything must end up in a D3D11 texture/view.</dd>
-<dt>Can a source have its own audio?</dt><dd>Not in ABI 1. Sources are video-only; use a separate audio device or a future ABI extension.</dd>
-<dt>How do I store state that isn't a number (a file path, text)?</dt><dd>Properties are numeric in ABI 1. Store extra data yourself, e.g. a JSON file in <code>%LOCALAPPDATA%\Nocto\plugins\&lt;yourplugin&gt;\</code>.</dd>
+<dt>Can a source have its own audio?</dt><dd>Not in ABI 1 or ABI 2: a plugin source only produces video. Use a separate audio device, or an audio filter or output to process or receive the mixed audio.</dd>
+<dt>How do I store state that isn't a number (a file path, text)?</dt><dd>Source and filter properties are still numeric (float, int, bool, colour). With ABI 2 (Nocto 0.8.0+) use <code>nocto.storage</code>: a per-plugin settings JSON document (any JSON text, up to 1 MiB, kept in Nocto's data folder and not included in scene exports or profiles) and secret storage for tokens and keys (never exported or logged). Edit such values in a dock panel built with <code>nocto.ui</code> (text inputs, checkboxes, combos). On older hosts (ABI 1) store the data yourself, e.g. a JSON file in your own folder.</dd>
 <dt>Why isn't <code>update</code> / <code>destroy</code> / <code>nocto_plugin_unload</code> called?</dt><dd>See the notes in each section: in 0.4 source settings changes recreate the instance, filter instances live until exit, and DLLs are never unloaded. Write code that works whether or not these are called.</dd>
-<dt>Will my plugin break when Nocto updates?</dt><dd>Not while the ABI stays 1. A new ABI would be announced in the release notes; old plugins are then refused with a clear log message rather than loaded.</dd>
+<dt>Will my plugin break when Nocto updates?</dt><dd>Not while the host supports your ABI: Nocto 0.8.0 loads ABI 1 and ABI 2 plugins unchanged. A future incompatible ABI would be announced in the release notes; a plugin reporting an ABI the host does not support is refused with a clear log message rather than loaded.</dd>
 <dt>Can I ship a plugin with dependencies?</dt><dd>Yes, next to the DLL in the same folder (loaded with <code>LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR</code>). Avoid names that collide with Nocto's own DLLs.</dd>
 <dt>Does the plugin work for 32-bit games / game capture?</dt><dd>Plugins run inside Nocto (64-bit) only; they never run inside games.</dd>
 <dt>Is the HDR canvas different?</dt><dd>Yes: filters receive FP16 scRGB. Avoid assuming 0..1 range and avoid <code>saturate()</code> on colour if you want to keep HDR highlights.</dd>
