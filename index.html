@@ -16,9 +16,9 @@ footer{text-align:center;color:var(--m);font-size:13px;margin-top:64px}
 </style></head><body><main><nav style="display:flex;gap:20px;justify-content:center;margin-bottom:28px"><a href="plugin-library.html" style="color:var(--v);text-decoration:none">Plugins</a><a href="plugins.html" style="color:var(--v);text-decoration:none">Plugin SDK</a><a href="https://github.com/lukeroundy/nocto-releases/releases" style="color:var(--v);text-decoration:none">Releases</a><a href="https://github.com/lukeroundy/nocto-releases/issues/new/choose" target="_blank" rel="noopener" style="color:var(--v);text-decoration:none">Report a bug</a><a href="https://www.patreon.com/noctoapp" target="_blank" rel="noopener" style="color:var(--v);text-decoration:none">Support on Patreon</a></nav>
 
 <header><img src="assets/logo.png" alt="Nocto moon logo"><h1>Nocto</h1><p class="tag">Record and stream without your frames ever leaving the GPU. Now on Windows and Linux.</p>
-<a class="btn" id="dl" href="https://github.com/lukeroundy/nocto-releases/releases/download/v0.7.0/Nocto-Setup-0.7.0.exe">Download for Windows</a>
+<a class="btn" id="dl" href="https://github.com/lukeroundy/nocto-releases/releases/download/v0.8.0/Nocto-Setup-0.8.0.exe">Download for Windows</a>
 <div class="pk" id="pk" role="radiogroup" aria-label="Choose your platform"></div>
-<p class="small" id="ver">v0.7.0 &middot; Windows 10/11 x64 &middot; <a href="https://github.com/lukeroundy/nocto-releases/releases">all releases</a></p>
+<p class="small" id="ver">v0.8.0 &middot; Windows 10/11 x64 &middot; <a href="https://github.com/lukeroundy/nocto-releases/releases">all releases</a></p>
 <div class="inst" id="inst" hidden></div></header>
 <section class="grid">
 <div class="f"><h3>Zero-copy pipeline</h3><p>Capture, convert and encode on the GPU with NVENC, Intel QSV/Arc and other hardware encoders on Windows. Linux records with QuickSync, VAAPI, NVENC or a software encoder.</p></div>
@@ -36,6 +36,13 @@ footer{text-align:center;color:var(--m);font-size:13px;margin-top:64px}
 </section>
 <section style="margin-top:56px;background:var(--card);border:1px solid #2a2340;border-radius:16px;padding:24px 28px">
 <h2 style="margin:0 0 8px;color:var(--v)">What's new</h2>
+<h3 style="margin:16px 0 4px">0.8.0: Twitch plugin, Plugin SDK 2 and the plugin library</h3>
+<ul style="color:var(--m);margin:0">
+<li>New plugin library in File &gt; Plugins: install from a .zip (Nocto lists the files first and asks before installing) or browse the plugin list and install with a checksum check. Nothing is downloaded until you press a button</li>
+<li>Twitch plugin (separate download): sign in with a device code, edit your stream title, category and tags, and read and send chat in a dock. <a style="color:var(--v)" href="plugin-library.html">Get it on the Plugins page</a></li>
+<li>Plugin SDK 1.1 (ABI 2) for authors: docks and panels, menus, settings, secret storage, HTTPS and WebSockets. Existing plugins keep working</li>
+<li>Windows x64, Windows ARM64 and Linux builds. Windows updates from 0.7.0; Linux includes everything from 0.7.1 to 0.7.3</li>
+</ul>
 <h3 style="margin:16px 0 4px">0.7.3: Linux</h3>
 <ul style="color:var(--m);margin:0">
 <li>Linux only (Windows stays on 0.7.0): Window Capture now works with a "Choose window..." picker, Display and Window Capture properties can reopen the picker to switch screen or window, and the AppImage can update itself from inside Nocto (checksum verified, with a backup and automatic rollback). If you are on 0.7.2 or older, download this version manually once</li>

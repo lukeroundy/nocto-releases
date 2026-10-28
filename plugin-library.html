@@ -20,8 +20,8 @@ details{color:var(--m);font-size:14px}summary{cursor:pointer;color:var(--v)}
 <div id="grid" class="grid"><p>Loading plugins&hellip;</p></div>
 <noscript><p>This list needs JavaScript. The raw list is <a href="plugins.json">plugins.json</a>.</p></noscript>
 <h2>How to install</h2>
-<p><b>In Nocto (next release, no terminal needed):</b> open <b>File &rsaquo; Plugins&hellip;</b>, then either press <b>Browse plugins&hellip;</b> (it loads this list, checks the download against its SHA-256 and installs it), or download a plugin's zip from here and press <b>Install from .zip&hellip;</b>. Nocto asks before installing, and the plugin is ready after you restart Nocto. <b>Remove</b> in the same window uninstalls plugins you installed.</p>
-<p><b>Current releases (0.7.3 and older), by hand:</b></p>
+<p><b>In Nocto 0.8.0 and newer (no terminal needed):</b> open <b>File &rsaquo; Plugins&hellip;</b>, then either press <b>Browse plugins&hellip;</b> (it loads this list, checks the download against its SHA-256 and installs it), or download a plugin's zip from here and press <b>Install from .zip&hellip;</b>. Nocto asks before installing, and the plugin is ready after you restart Nocto. <b>Remove</b> in the same window uninstalls plugins you installed.</p>
+<p><b>Nocto 0.7.3 and older, by hand:</b></p>
 <ol>
 <li>In Nocto open <b>File &rsaquo; Plugins&hellip;</b> and press <b>Open user plugins folder</b>.</li>
 <li>Copy the plugin's files (from the zip) into that folder. Windows: <code>%LOCALAPPDATA%\Nocto\plugins</code>. Linux: <code>~/.local/share/Nocto/plugins</code>.</li>
@@ -47,10 +47,13 @@ function card(p){
  (p.platforms||[]).forEach(x=>{const t=el('span','tag'+(x.indexOf(mine)===0?' me':''),OS_NAMES[x]||x);m.appendChild(t)});
  c.appendChild(m);c.appendChild(el('p','',p.description));
  if(p.features&&p.features.length){const u=el('ul');p.features.forEach(f=>u.appendChild(el('li','',f)));c.appendChild(u)}
- const d=(p.downloads||[])[0];
- if(d){
-  const a=el('a','btn','Download '+(d.file||'')+' ('+size(d.size)+')');a.href=d.url;a.setAttribute('download','');c.appendChild(a);
-  c.appendChild(el('div','hash','SHA-256: '+d.sha256));
+ const ds=(p.downloads||[]).slice().sort((a,b)=>((b.platform==='any'||b.platform.indexOf(mine)===0)?1:0)-((a.platform==='any'||a.platform.indexOf(mine)===0)?1:0));
+ if(ds.length){
+  ds.forEach((d,i)=>{
+   const label=(ds.length>1?(OS_NAMES[d.platform]||d.platform)+': ':'Download ')+(d.file||'')+' ('+size(d.size)+')';
+   const a=el('a','btn'+(i?' ghost':''),label);a.href=d.url;a.setAttribute('download','');c.appendChild(a);
+   c.appendChild(el('div','hash','SHA-256: '+d.sha256));
+  });
   if(p.install){const x=el('details');x.appendChild(el('summary','','Install'));x.appendChild(el('div','',p.install));c.appendChild(x)}
  }else{const a=el('a','btn','Not available yet');a.setAttribute('aria-disabled','true');a.href='#';c.appendChild(a)}
  return c;
