@@ -11,8 +11,16 @@
       "status": "coming_soon",
       "author": "Nocto",
       "description": "Sign in to Twitch from inside Nocto (no stream key typing, no browser redirect server), edit your stream title, category and tags, and read and send chat in a dock next to your preview.",
-      "features": ["Sign in with a device code", "Edit stream title, category and tags", "Chat dock"],
-      "platforms": ["windows-x64", "windows-arm64", "linux-x64"],
+      "features": [
+        "Sign in with a device code",
+        "Edit stream title, category and tags",
+        "Chat dock"
+      ],
+      "platforms": [
+        "windows-x64",
+        "windows-arm64",
+        "linux-x64"
+      ],
       "downloads": []
     },
     {
@@ -23,8 +31,15 @@
       "status": "available",
       "author": "Nocto",
       "description": "Shader-only video filter: darkens the edges of a source. Strength, radius and tint. No compiler needed, and a good starting point for your own shader filters.",
-      "features": ["Video filter and editor effect", "Strength / radius / tint"],
-      "platforms": ["windows-x64", "windows-arm64", "linux-x64"],
+      "features": [
+        "Video filter and editor effect",
+        "Strength / radius / tint"
+      ],
+      "platforms": [
+        "windows-x64",
+        "windows-arm64",
+        "linux-x64"
+      ],
       "min_nocto": "0.4.0",
       "downloads": [
         {
@@ -35,18 +50,18 @@
           "size": 1273
         }
       ],
-      "install": "File > Plugins... > Open user plugins folder, copy the files from the zip into it, then enable the plugin in the Plugins window."
+      "install": "In Nocto (next release): File > Plugins... > Install from .zip..., pick this zip, restart Nocto. Current releases: File > Plugins... > Open user plugins folder, copy the files from the zip into it, then enable the plugin in the Plugins window."
     }
   ],
   "tools": [
     {
       "id": "sdk",
       "name": "Nocto Plugin SDK",
-      "version": "1.0 (ABI 1)",
-      "description": "Header, CMake template and samples for writing native plugins and shader filters.",
-      "url": "sdk/nocto-plugin-sdk-1.0.zip",
-      "sha256": "a79e3e8767a3bd01e52ffef4a5a4c4eab46c0e210bc1ed39214c29cac62f426c",
-      "size": 11780,
+      "version": "1.1 (ABI 2)",
+      "description": "Header, CMake template and samples for writing native plugins and shader filters, now with the ABI 2 API (panels, settings, secrets, HTTP/WebSocket, timers) and the full Twitch plugin source.",
+      "url": "sdk/nocto-plugin-sdk-1.1.zip",
+      "sha256": "e504d8e88ead4cb1c177b4c5879b9aa449f587db23c5de05922073e39520d58f",
+      "size": 40826,
       "docs": "plugins.html"
     }
   ]

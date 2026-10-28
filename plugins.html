@@ -1,10 +1,10 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Plugin SDK - Nocto</title><link rel="icon" href="assets/favicon.png"><link rel="stylesheet" href="assets/docs.css"></head><body>
 <header class="top"><a class="brand" href="./"><img src="assets/logo.png" alt="">Nocto</a><nav><a href="./">Home</a><a href="plugin-library.html">Plugins</a><a href="plugins.html" class="on">Plugin SDK</a><a href="https://github.com/lukeroundy/nocto-releases/releases">Releases</a><a href="https://www.patreon.com/noctoapp" target="_blank" rel="noopener">Patreon</a></nav><button id="toc-toggle" aria-label="Contents">&#9776;</button></header>
-<div class="wrap"><aside id="toc"><div class="tt">Contents</div><a href="#overview">Overview</a><a href="#types">Plugin types</a><a href="#abi">ABI & entry points</a><a href="#host">nocto_host</a><a href="#info">nocto_plugin_info</a><a href="#props">Properties & settings UI</a><a href="#source">Sources</a><a href="#vfilter">Video filters</a><a href="#texture">D3D11 texture contract</a><a href="#afilter">Audio filters</a><a href="#audio">Audio buffer format</a><a href="#output">Outputs</a><a href="#hotkey">Hotkey actions</a><a href="#script">Script engine (reserved)</a><a href="#enums">Enums, macros & typedefs</a><a href="#threads">Threading & lifetime</a><a href="#loading">Load paths, enable/disable</a><a href="#crash">Crash handling & limits</a><a href="#shader">Shader-only plugins</a><a href="#editor">Editor effects &amp; keyframes</a><a href="#linux">Linux plugins (.so)</a><a href="#first">Build your first plugin</a><a href="#samples">Sample plugins (full source)</a><a href="#debug">Debugging & plugins.log</a><a href="#faq">FAQ</a><a href="#download">Downloads</a></aside><main class="doc">
+<div class="wrap"><aside id="toc"><div class="tt">Contents</div><a href="#overview">Overview</a><a href="#types">Plugin types</a><a href="#abi">ABI & entry points</a><a href="#host">nocto_host</a><a href="#info">nocto_plugin_info</a><a href="#props">Properties & settings UI</a><a href="#source">Sources</a><a href="#vfilter">Video filters</a><a href="#texture">D3D11 texture contract</a><a href="#afilter">Audio filters</a><a href="#audio">Audio buffer format</a><a href="#output">Outputs</a><a href="#hotkey">Hotkey actions</a><a href="#script">Script engine (reserved)</a><a href="#enums">Enums, macros & typedefs</a><a href="#threads">Threading & lifetime</a><a href="#loading">Load paths, enable/disable</a><a href="#crash">Crash handling & limits</a><a href="#shader">Shader-only plugins</a><a href="#editor">Editor effects &amp; keyframes</a><a href="#abi2">ABI 2: panels, settings, network</a><a href="#install">Installing &amp; zip format</a><a href="#linux">Linux plugins (.so)</a><a href="#first">Build your first plugin</a><a href="#samples">Sample plugins (full source)</a><a href="#debug">Debugging & plugins.log</a><a href="#faq">FAQ</a><a href="#download">Downloads</a></aside><main class="doc">
 <section id="overview"><h1>Nocto Plugin SDK</h1>
-<p class="lead">Extend Nocto with native C/C++ DLLs or shader-only filters. ABI version <b>1</b>, Nocto 0.4.0+.</p>
-<div class="dl"><a class="btn" href="sdk/nocto-plugin-sdk-1.0.zip">Download SDK (zip)</a> <a class="btn ghost" href="sdk/nocto_plugin.h" download>nocto_plugin.h</a></div>
+<p class="lead">Extend Nocto with native C/C++ DLLs or shader-only filters. ABI version <b>2</b> (ABI 1 plugins still load), SDK 1.1. Nocto 0.4.0+ for ABI 1 features; ABI 2 needs the Nocto release that ships the plugin library (see <a href="#abi2">ABI 2</a>).</p>
+<div class="dl"><a class="btn" href="sdk/nocto-plugin-sdk-1.1.zip">Download SDK (zip)</a> <a class="btn ghost" href="sdk/nocto_plugin.h" download>nocto_plugin.h</a></div>
 <p>A plugin is a Windows x64 DLL (or, since Nocto 0.6.0, a Linux x86_64 shared library, see <a href="#linux">Linux</a>) that exports a small plain-C interface defined in a single header,
 <code>nocto_plugin.h</code> (no dependencies besides <code>&lt;stdint.h&gt;</code>). All GPU objects are Direct3D 11 objects on Nocto's
 own device, passed as <code>void*</code>, so frames never leave the GPU. Simple video effects need no compiler at all: a JSON manifest plus
@@ -31,9 +31,9 @@ NOCTO_EXPORT void     nocto_plugin_unload(void);                               /
 <p>In C++ declare them <code>extern "C"</code> so the names are not mangled. Load sequence:</p>
 <ol><li>Nocto <code>LoadLibraryEx</code>s the DLL (search: the DLL's own folder, then system default dirs; put private dependencies next to your DLL).</li>
 <li>It looks up <code>nocto_plugin_abi</code> and <code>nocto_plugin_load</code>; if either is missing the file is reported as <i>not a Nocto plugin</i> and unloaded.</li>
-<li><code>nocto_plugin_abi()</code> must return exactly the host's <code>NOCTO_PLUGIN_ABI</code> (currently <code>1u</code>). Any other value: <i>ABI n not supported (host ABI 1)</i>, the DLL is unloaded.</li>
+<li><code>nocto_plugin_abi()</code> must return <code>1u</code> or <code>2u</code> (the host's <code>NOCTO_PLUGIN_ABI</code> is 2; return 2 if you use the ABI 2 APIs). Any other value: <i>ABI n not supported (host ABI 2)</i>, the DLL is unloaded.</li>
 <li><code>nocto_plugin_load(host, info)</code> is called once. Fill <code>info</code> and call <code>host-&gt;register_*</code>. Return 1. Returning 0 marks the plugin failed (<i>nocto_plugin_load returned 0</i>) and drops anything it registered.</li></ol>
-<p><b>Versioning rules.</b> The ABI number changes only on incompatible changes (struct layout, calling conventions, semantics). Within ABI 1 new functionality
+<p><b>Versioning rules.</b> The ABI number changes only on incompatible changes (struct layout, calling conventions, semantics). Within an ABI version new functionality
 will be added only through new exports or new <code>register_*</code> features, never by changing existing structs. Compile against the header shipped with the
 ABI you target; check <code>host-&gt;abi</code> if you want to refuse unknown hosts. <code>host-&gt;host_version</code> is a human-readable string (currently
 <code>"Nocto 1.0"</code>, the plugin host version, not the app version) for logging only &mdash; don't parse it.</p>
@@ -297,6 +297,20 @@ float4 main(float4 pos : SV_Position, float2 uv : TEXCOORD0) : SV_Target {
 <p>Effects are saved in the <code>.gprproj</code> JSON per clip as <code>{"id","key","enabled","params":[{"id","v","keys":[{"t","v","interp"}]}],"path","maskShape","maskInvert","mask":[...]}</code>. <code>t</code> is clip-local seconds and <code>interp</code> is 0 linear, 1 ease, 2 hold. Params are matched by <code>id</code>, so adding params to your manifest later keeps old projects working: missing ids use your <code>default</code>.</p>
 </section>
 
+<section id="abi2"><h2>ABI 2: panels, settings, secrets, network, timers</h2>
+<p>ABI 2 is additive: a plugin built for ABI 1 loads unchanged. Get an API table with <code>host-&gt;get_api(host-&gt;plugin, name, version)</code> (when <code>host-&gt;abi &gt;= 2</code>; NULL if unknown). Every table starts with a <code>size</code> field; check it before using a field you were not built against.</p>
+<table><tr><th>Table</th><th>Gives you</th></tr>
+<tr><td><code>nocto.ui</code> v1</td><td>Widgets for a dock panel: text, buttons, checkbox, text inputs (password / multiline), sliders, combo, tabs, child regions, progress bar, images, clipboard. Sizes are in dp (100% pixels): never pre-scale; Nocto scales to 300%.</td></tr>
+<tr><td><code>nocto.app</code> v1</td><td><code>register_panel</code> (with a dock hint: float, right, bottom, left), <code>register_menu_item</code>, <code>post_to_ui</code>, <code>post_to_ui_after</code> + <code>cancel_task</code> (timers, SDK 1.1), <code>open_url</code>, <code>get_stream_state</code>, <code>toast</code>, <code>now_ms</code>, textures</td></tr>
+<tr><td><code>nocto.storage</code> v1</td><td>Per-plugin settings JSON (up to 1 MiB) and secrets (key <code>[A-Za-z0-9_.-]{1,64}</code>, value up to 2500 bytes; Windows Credential Manager, or the Secret Service on Linux with a 0600 file fallback). Secrets are never exported or logged.</td></tr>
+<tr><td><code>nocto.net</code> v1</td><td>Async HTTP(S) and WebSocket (ws/wss) clients with TLS. <code>http_cancel</code> guarantees no later callback; <code>ws_open</code> calls <code>on_close</code> exactly once, also when the connection fails.</td></tr></table>
+<p><b>Threads.</b> Panel draw, menu items, <code>post_to_ui</code> and timer tasks, HTTP completions and WebSocket events all run on the UI thread, one after another, so state touched only from them needs no locks. Never block in them. <code>post_to_ui</code>, <code>post_to_ui_after</code>, <code>cancel_task</code> and <code>get_stream_state</code> are the only calls valid from another thread. All callbacks are crash-guarded.</p>
+<p><b>Example.</b> The full Twitch plugin source ships in the SDK zip (<code>samples/twitch</code>): a menu, two dock panels, OAuth device code flow, tokens in secrets, the Helix API and EventSub WebSocket chat. The sample <code>api_demo</code> shows each API in about 300 lines. Full reference: <code>docs/PLUGINS.md</code> in the SDK zip, and the comments in <code>nocto_plugin.h</code>.</p></section>
+
+<section id="install"><h2>Installing plugins &amp; the zip format</h2>
+<p>Users: <b>File &rsaquo; Plugins&hellip;</b> &rsaquo; <b>Install from .zip&hellip;</b> or <b>Browse plugins&hellip;</b>. Nothing is fetched until the user presses <i>Load plugin list</i>; every install asks first, warns that plugins run with Nocto's access to the PC, and downloads from the list are checked against the SHA-256 in <a href="plugins.json">plugins.json</a>. Installs and removals finish at the next start of Nocto.</p>
+<p>Authors: a plain zip, flat or with one wrapping folder, holding only <code>*.dll</code> (Windows), <code>*.so</code> (Linux), <code>*.json</code>, <code>*.hlsl</code>, <code>*.glsl</code>, <code>*.md</code>, <code>*.txt</code>. Keep the file stem equal to the catalog <code>id</code> so Nocto can tell it is installed. Nocto refuses other file types, absolute or <code>..</code> paths, reserved Windows names, duplicate names, more than 64 files, more than 64 MiB per file or 128 MiB total, bad CRCs, and zips with nothing for the running OS. To list your plugin in the library add an entry to <code>plugins.json</code> with <code>platform</code> (<code>windows-x64</code>, <code>windows-arm64</code>, <code>linux-x64</code> or <code>any</code>), <code>url</code> (https, or relative) and a 64-hex <code>sha256</code>.</p></section>
+
 <section id="linux"><h2>Linux plugins (.so)</h2>
 <p>Nocto 0.6.0 for Linux (x86_64 AppImage) loads the same plugins through the same ABI 1. The header, the property system, audio filters, outputs, hotkeys and the editor effects work unchanged. What differs is the graphics API and the file layout.</p>
 <ul><li><b>Format and folders:</b> code plugins are shared libraries (<code>*.so</code>, loaded with <code>dlopen</code>) and shader manifests are <code>*.json</code> as on Windows. Folders: <code>~/.local/share/Nocto/plugins/</code> (or <code>$XDG_DATA_HOME/Nocto/plugins</code>, or <code>$NOCTO_CONFIG_DIR/plugins</code> if set) and the <code>plugins</code> folder next to the <code>nocto</code> binary (inside the AppImage that is read-only; use the per-user folder).</li>
@@ -308,7 +322,7 @@ float4 main(float4 pos : SV_Position, float2 uv : TEXCOORD0) : SV_Target {
 
 <section id="first"><h2>Build your first plugin (CMake + MSVC)</h2>
 <ol><li>Install <b>Visual Studio 2022</b> or <b>Build Tools 2022</b> with "Desktop development with C++" (includes the Windows SDK) and <b>CMake 3.20+</b>.</li>
-<li>Download and unzip <a href="sdk/nocto-plugin-sdk-1.0.zip">nocto-plugin-sdk-1.0.zip</a>:
+<li>Download and unzip <a href="sdk/nocto-plugin-sdk-1.1.zip">nocto-plugin-sdk-1.1.zip</a>:
 <pre><code class="lang-text">nocto-plugin-sdk/
   CMakeLists.txt                 nocto_add_plugin() helper; builds sample + template
   README.md
@@ -325,7 +339,7 @@ cmake --install build --config Release   # copies the DLLs + vignette into %LOCA
 <p>Without CMake, from a <i>x64 Native Tools</i> prompt:</p>
 <pre><code class="lang-sh">cl /nologo /LD /MT /EHsc /std:c++17 /I include template\my_plugin.cpp d3d11.lib d3dcompiler.lib</code></pre>
 <p>Tips: build x64 only (Nocto is 64-bit); <code>/MT</code> (static CRT) avoids runtime dependencies; any compiler that produces a C-ABI x64 DLL works (clang-cl, MinGW with <code>__declspec(dllexport)</code>, Rust <code>cdylib</code>, Zig).</p>
-<h3>CMakeLists.txt</h3><pre><code class="lang-cmake"># Nocto plugin SDK (ABI 1) - CMake template. Builds the C++ sample and the template plugin.
+<h3>CMakeLists.txt</h3><pre><code class="lang-cmake"># Nocto plugin SDK (ABI 2) - CMake template. Builds the C++ sample and the template plugin.
 #   cmake -S . -B build -A x64
 #   cmake --build build --config Release
 # Output: build\Release\sample_source.dll, build\Release\my_plugin.dll -&gt; copy to %LOCALAPPDATA%\Nocto\plugins
@@ -585,7 +599,7 @@ extern &quot;C&quot; NOCTO_EXPORT void nocto_plugin_unload(void) { g_host = null
 <ul><li><b>Log</b>: <code>%LOCALAPPDATA%\Nocto\plugins.log</code> (append-only) and the bottom of File &rsaquo; Plugins&hellip; (last 500 lines). Typical lines:
 <pre><code class="lang-text">06:12:03 sample_source.dll: loaded Sample Source 1.0.0 (4 features)
 06:12:03 vignette.json: loaded Vignette (sample shader) 1.0.0 (1 features)
-06:12:03 my_plugin.dll: FAILED - ABI 2 not supported (host ABI 1)
+06:12:03 my_plugin.dll: FAILED - ABI 3 not supported (host ABI 2)
 06:12:03 loaded 3 plugin(s), 5 feature(s)
 06:12:09 sample_source.dll [info] Color Bars created 640x360
 06:13:40 sample_source/frame_counter: output started
@@ -608,10 +622,10 @@ extern &quot;C&quot; NOCTO_EXPORT void nocto_plugin_unload(void) { g_host = null
 </dl></section>
 
 <section id="download"><h2>Downloads</h2>
-<ul><li><a href="sdk/nocto-plugin-sdk-1.0.zip">nocto-plugin-sdk-1.0.zip</a> &mdash; header, samples, template, CMake</li>
+<ul><li><a href="sdk/nocto-plugin-sdk-1.1.zip">nocto-plugin-sdk-1.1.zip</a> &mdash; header, samples, template, CMake</li>
 <li><a href="sdk/nocto_plugin.h" download>nocto_plugin.h</a> &mdash; the header alone</li>
 <li><a href="https://github.com/lukeroundy/nocto-releases/releases/latest">Nocto installer</a></li></ul>
-<h3>nocto_plugin.h</h3><pre><code class="lang-c">/* nocto_plugin.h - Nocto plugin C ABI (version 1).
+<h3>nocto_plugin.h</h3><pre><code class="lang-c">/* nocto_plugin.h - Nocto plugin C ABI (version 2; ABI 1 plugins keep loading unchanged).
  *
  * A plugin is a DLL exporting:
  *     NOCTO_EXPORT uint32_t nocto_plugin_abi(void);                                   // return NOCTO_PLUGIN_ABI
@@ -620,14 +634,14 @@ extern &quot;C&quot; NOCTO_EXPORT void nocto_plugin_unload(void) { g_host = null
  * nocto_plugin_load fills `info` and registers features through `host`. Descriptors (and every string / array they point
  * to) must stay valid until unload - use static storage. Nocto copies nothing it does not need.
  *
- * DLLs are loaded from %LOCALAPPDATA%\Nocto\plugins and from the &quot;plugins&quot; folder next to Nocto.exe.
+ * DLLs are loaded from %LOCALAPPDATA%\Nocto\plugins and from the "plugins" folder next to Nocto.exe.
  * Linux: the plugin is a shared library (.so) loaded with dlopen from ~/.local/share/Nocto/plugins (or $NOCTO_CONFIG_DIR/plugins)
- * and &lt;dir of the nocto binary&gt;/plugins. Same ABI; only the graphics handles differ (see &quot;Linux graphics handles&quot; below).
+ * and &lt;dir of the nocto binary&gt;/plugins. Same ABI; only the graphics handles differ (see "Linux graphics handles" below).
  * Shader-only video filters need no DLL: a &lt;name&gt;.json manifest + .hlsl file (see docs/PLUGINS.md).
  *
- * Threads: sources, video filters and outputs&#x27; video callback run on the render thread with the D3D11 immediate
+ * Threads: sources, video filters and outputs' video callback run on the render thread with the D3D11 immediate
  * context locked (do not lock it yourself, do not block). Audio filters run on the mixer thread (10 ms chunks).
- * Outputs&#x27; audio callback runs on the audio thread. Hotkey callbacks run on the UI thread.
+ * Outputs' audio callback runs on the audio thread. Hotkey callbacks run on the UI thread.
  * Crashes (access violations etc.) inside any callback are caught: the plugin is disabled and the error shown in
  * the Plugins window; Nocto keeps running. Do not rely on this for normal error handling.
  *
@@ -639,14 +653,18 @@ extern &quot;C&quot; NOCTO_EXPORT void nocto_plugin_unload(void) { g_host = null
 #include &lt;stdint.h&gt;
 
 #ifdef __cplusplus
-extern &quot;C&quot; {
+extern "C" {
 #endif
 
-#define NOCTO_PLUGIN_ABI 1u
+/* NOCTO_PLUGIN_ABI: what a plugin built against this header returns from nocto_plugin_abi(). Nocto loads plugins reporting 1 or 2.
+ * ABI 2 adds host-&gt;get_api() (UI panels, menus, storage, secrets, HTTP / WebSocket - see "ABI 2" below). A plugin that only uses ABI-1
+ * features can keep returning 1 (NOCTO_PLUGIN_ABI_V1). Always check host-&gt;abi &gt;= 2 before calling host-&gt;get_api. */
+#define NOCTO_PLUGIN_ABI_V1 1u
+#define NOCTO_PLUGIN_ABI 2u
 #if defined(_WIN32)
 #define NOCTO_EXPORT __declspec(dllexport)
 #else
-#define NOCTO_EXPORT __attribute__((visibility(&quot;default&quot;)))
+#define NOCTO_EXPORT __attribute__((visibility("default")))
 #endif
 
 typedef enum nocto_prop_type { NOCTO_PROP_FLOAT = 0, NOCTO_PROP_INT = 1, NOCTO_PROP_BOOL = 2, NOCTO_PROP_COLOR = 3 } nocto_prop_type;
@@ -661,9 +679,9 @@ typedef enum nocto_log_level { NOCTO_LOG_INFO = 0, NOCTO_LOG_WARN = 1, NOCTO_LOG
 
 /* Linux graphics handles. There is no D3D11: every `device` / `context` argument is NULL and an OpenGL 3.3 core context is current on the
  * calling thread (render thread for sources / video filters / output video). The host saves and restores its GL state around each call.
- *   - &quot;ID3D11ShaderResourceView*&quot; = GL_TEXTURE_2D name stored in the pointer: (void*)(uintptr_t)name. Source textures are RGBA8, straight
+ *   - "ID3D11ShaderResourceView*" = GL_TEXTURE_2D name stored in the pointer: (void*)(uintptr_t)name. Source textures are RGBA8, straight
  *     alpha, row 0 of the uploaded data = top of the picture.
- *   - &quot;ID3D11RenderTargetView*&quot; (video filter out) = framebuffer object name, already bound with the viewport set to w x h; draw into it.
+ *   - "ID3D11RenderTargetView*" (video filter out) = framebuffer object name, already bound with the viewport set to w x h; draw into it.
  *   - Video output gets the canvas texture name (RGBA8, row 0 = top).
  * Video filters are called with in = texture name and out = FBO name; a filter must not keep GL objects bound. Link plugins with -lGL.
  * A crash (SIGSEGV/SIGBUS/SIGFPE/SIGILL/SIGABRT) inside a callback is caught like on Windows; do not rely on it. */
@@ -671,14 +689,14 @@ typedef enum nocto_log_level { NOCTO_LOG_INFO = 0, NOCTO_LOG_WARN = 1, NOCTO_LOG
 /* ---- source: produces a texture every frame ---- */
 typedef struct nocto_source_desc {
     const char* id;          /* unique within the plugin */
-    const char* name;        /* &quot;Add source&quot; menu label */
+    const char* name;        /* "Add source" menu label */
     const nocto_prop* props; uint32_t prop_count;
     /* device: ID3D11Device*. Return an instance pointer (NULL = failure). */
     void* (*create)(void* device, const float* values);
     void (*destroy)(void* inst);
     void (*update)(void* inst, const float* values);                 /* settings changed (optional) */
     /* context: ID3D11DeviceContext*. Return ID3D11ShaderResourceView* of a BGRA8/RGBA8 texture (sRGB-encoded,
-       straight alpha) owned by the plugin and valid until the next call; set *w/*h. NULL = draw nothing. */
+       straight alpha) owned by the plugin and valid until the next call; set *w and *h. NULL = draw nothing. */
     void* (*render)(void* inst, void* context, double time_sec, uint32_t* w, uint32_t* h);
 } nocto_source_desc;
 
@@ -738,7 +756,184 @@ typedef struct nocto_host {
     int (*register_output)(void* plugin, const nocto_output_desc* d);
     int (*register_hotkey)(void* plugin, const nocto_hotkey_desc* d);
     int (*register_script_engine)(void* plugin, const nocto_script_engine_desc* d);
+    /* ---- ABI 2 (valid only when host-&gt;abi &gt;= 2; the struct is only ever extended at the end) ----
+     * Returns a pointer to a const API table, or NULL when the host does not know that name / version:
+     *   "nocto.ui"      version 1 -&gt; const nocto_ui_v1*        (widgets for panels)
+     *   "nocto.app"     version 1 -&gt; const nocto_app_v1*       (panels, menus, UI-thread tasks, stream state, open_url, textures)
+     *   "nocto.storage" version 1 -&gt; const nocto_storage_v1*   (per-plugin settings JSON + secret storage)
+     *   "nocto.net"     version 1 -&gt; const nocto_net_v1*       (async HTTP + WebSocket)
+     * Every table starts with `uint32_t size` (sizeof the table the host filled in): fields beyond `size` do not exist. */
+    const void* (*get_api)(void* plugin, const char* name, uint32_t version);
 } nocto_host;
+
+
+/* =====================================================================================================================
+ * ABI 2
+ * ---------------------------------------------------------------------------------------------------------------------
+ * Threads: panel draw callbacks, menu callbacks, post_to_ui tasks, HTTP completions and WebSocket events ALL run on the UI thread
+ * (inside Nocto's frame, one after another) - a plugin does not need locks for state touched only from those callbacks. Do not block
+ * in them. The calls of nocto_ui_v1 are only valid inside a panel draw callback; nocto_app_v1.post_to_ui is the only call that
+ * may be made from any thread. Every callback is crash-guarded like the ABI-1 callbacks (a crash disables the plugin).
+ * Sizes passed to nocto_ui_v1 (widths, heights, spacing) are in "dp": 100%-scale pixels. Nocto multiplies them by the UI scale (up to
+ * 300%), so never pre-scale. 0 = automatic size, negative width = stretch to the right edge leaving -width dp.
+ * Colours are 0xAABBGGRR packed into a uint32_t (NOCTO_RGBA).
+ * ================================================================================================================== */
+#define NOCTO_RGBA(r, g, b, a) ((uint32_t)(r) | ((uint32_t)(g) &lt;&lt; 8) | ((uint32_t)(b) &lt;&lt; 16) | ((uint32_t)(a) &lt;&lt; 24))
+
+enum { NOCTO_INPUT_ENTER_RETURNS = 1, NOCTO_INPUT_PASSWORD = 2, NOCTO_INPUT_READONLY = 4, NOCTO_INPUT_AUTOSELECT = 8 };
+
+typedef struct nocto_ui_v1 {
+    uint32_t size;
+    /* text */
+    void (*text)(const char* utf8);
+    void (*text_wrapped)(const char* utf8);
+    void (*text_disabled)(const char* utf8);
+    void (*text_colored)(uint32_t rgba, const char* utf8);
+    void (*separator_text)(const char* utf8);          /* a section heading with a rule */
+    void (*separator)(void);
+    void (*spacing)(void);
+    /* widgets: return 1 when the value was changed / the button pressed */
+    int (*button)(const char* label, float w_dp, float h_dp);
+    int (*small_button)(const char* label);
+    int (*checkbox)(const char* label, int* value);
+    int (*input_text)(const char* label, char* buf, uint32_t cap, uint32_t flags, const char* hint);
+    int (*input_multiline)(const char* label, char* buf, uint32_t cap, uint32_t flags, float w_dp, float h_dp);
+    int (*input_int)(const char* label, int* value);
+    int (*input_float)(const char* label, float* value);
+    int (*slider_float)(const char* label, float* value, float lo, float hi);
+    int (*slider_int)(const char* label, int* value, int lo, int hi);
+    /* combo: items = "A\0B\0C\0\0" (zero separated, double-zero terminated) */
+    int (*combo)(const char* label, int* current, const char* items);
+    int (*begin_combo)(const char* label, const char* preview);   /* if it returns 1 call end_combo() */
+    void (*end_combo)(void);
+    int (*selectable)(const char* label, int selected);
+    /* layout */
+    void (*same_line)(float offset_dp, float spacing_dp);          /* both 0 = default */
+    void (*new_line)(void);
+    void (*set_next_item_width)(float w_dp);
+    float (*content_width)(void);                                  /* remaining width in dp */
+    float (*content_height)(void);
+    int (*begin_child)(const char* id, float w_dp, float h_dp, int border);   /* always call end_child() afterwards */
+    void (*end_child)(void);
+    float (*scroll_y)(void);
+    float (*scroll_max_y)(void);
+    void (*set_scroll_here_y)(float ratio);                        /* 1 = scroll to the bottom */
+    void (*push_id_str)(const char* id);
+    void (*push_id_int)(int id);
+    void (*pop_id)(void);
+    void (*push_text_color)(uint32_t rgba);
+    void (*pop_text_color)(void);
+    int (*begin_tab_bar)(const char* id);                          /* if it returns 1 call end_tab_bar() */
+    void (*end_tab_bar)(void);
+    int (*begin_tab_item)(const char* label);                      /* if it returns 1 call end_tab_item() */
+    void (*end_tab_item)(void);
+    void (*begin_disabled)(int disabled);                          /* always paired with end_disabled() */
+    void (*end_disabled)(void);
+    void (*progress_bar)(float fraction, float w_dp, float h_dp, const char* overlay);
+    void (*tooltip)(const char* utf8);                             /* shown when the previous item is hovered */
+    int (*is_item_hovered)(void);
+    float (*text_width)(const char* utf8);                         /* in dp */
+    void (*image)(uint64_t texture, float w_dp, float h_dp);       /* texture from nocto_app_v1.texture_create */
+    void (*set_clipboard)(const char* utf8);
+} nocto_ui_v1;
+
+/* ---- panels (dock windows) and menu items ---- */
+typedef enum nocto_dock_hint {
+    NOCTO_DOCK_FLOAT = 0,    /* floating window the first time; afterwards wherever the user left it */
+    NOCTO_DOCK_RIGHT = 1,    /* a new column on the right of the layout (all RIGHT panels of all plugins share it as tabs) */
+    NOCTO_DOCK_BOTTOM = 2,   /* tabbed next to Filters / Audio Mixer */
+    NOCTO_DOCK_LEFT = 3
+} nocto_dock_hint;
+typedef struct nocto_panel_desc {
+    const char* id;          /* unique within the plugin */
+    const char* title;       /* window title / View menu entry (keep it unique across plugins) */
+    int32_t dock;            /* nocto_dock_hint, first run only: Nocto persists the user's layout and open/closed state */
+    int32_t default_open;    /* 1 = open the first time the plugin is seen */
+    float default_w, default_h;   /* dp, used for the floating case */
+    void (*draw)(void* user, const nocto_ui_v1* ui);
+    void* user;
+} nocto_panel_desc;
+enum { NOCTO_MENU_DISABLED = 1, NOCTO_MENU_CHECKED = 2 };
+typedef struct nocto_menu_item_desc {
+    const char* menu;        /* top-level menu title, e.g. "Twitch"; NULL / "" = the shared "Plugins" menu; "View" = the View menu */
+    const char* label;       /* "-" = separator */
+    void (*clicked)(void* user);
+    uint32_t (*state)(void* user);   /* optional: NOCTO_MENU_* bits queried every frame */
+    void* user;
+} nocto_menu_item_desc;
+
+typedef struct nocto_stream_state {
+    uint32_t size;           /* in: sizeof(nocto_stream_state); the host fills only fields that fit */
+    int32_t streaming;       /* 1 while any stream destination is live */
+    int32_t recording;
+    int32_t twitch_destination;   /* 1 when one of the stream destinations is the Twitch service */
+    double ui_scale;         /* 1.0 = 100% */
+} nocto_stream_state;
+
+typedef struct nocto_app_v1 {
+    uint32_t size;
+    int (*register_panel)(void* plugin, const nocto_panel_desc* d);
+    int (*register_menu_item)(void* plugin, const nocto_menu_item_desc* d);
+    void (*set_panel_open)(void* plugin, const char* panel_id, int open);   /* UI thread */
+    int (*is_panel_open)(void* plugin, const char* panel_id);
+    /* any thread: runs fn(user) later on the UI thread (drops the task if the plugin has been disabled) */
+    void (*post_to_ui)(void* plugin, void (*fn)(void* user), void* user);
+    int (*open_url)(void* plugin, const char* https_url);                   /* default browser; only http(s) URLs */
+    int (*get_stream_state)(void* plugin, nocto_stream_state* out);         /* any thread */
+    void (*toast)(void* plugin, const char* utf8);                          /* short notice at the bottom of the window */
+    int64_t (*now_ms)(void);                                                /* monotonic */
+    /* UI thread only. RGBA8 straight alpha, row 0 = top. Returns 0 on failure. Textures are freed by texture_destroy (or at exit). */
+    uint64_t (*texture_create)(void* plugin, const uint8_t* rgba, uint32_t w, uint32_t h);
+    void (*texture_destroy)(void* plugin, uint64_t texture);
+    /* any thread: like post_to_ui but runs fn(user) on the UI thread after at least delay_ms (a timer, checked once per frame).
+     * Returns an id for cancel_task (0 = not scheduled). Added in SDK 1.1: check `size &gt;= sizeof(nocto_app_v1)` before using. */
+    uint64_t (*post_to_ui_after)(void* plugin, uint32_t delay_ms, void (*fn)(void* user), void* user);
+    void (*cancel_task)(void* plugin, uint64_t id);                         /* any thread; harmless when the task already ran */
+} nocto_app_v1;
+
+/* ---- storage ---- */
+typedef struct nocto_storage_v1 {
+    uint32_t size;
+    /* Per-plugin settings document (any JSON text you like, up to 1 MiB), kept in Nocto's data folder. Not part of scene
+     * exports / profiles. settings_load copies up to cap-1 bytes + NUL into buf and returns the full length (0 = none yet). */
+    int32_t (*settings_load)(void* plugin, char* buf, uint32_t cap);
+    int (*settings_save)(void* plugin, const char* utf8_json);
+    /* Secrets (tokens, keys): Windows Credential Manager; Linux Secret Service (libsecret) with a 0600 file fallback.
+     * Per plugin and key (key: 1-64 chars of [A-Za-z0-9_.-], value up to 2500 bytes), never exported in profiles and never written to a log. secret_get returns the value length (-1 = none). */
+    int (*secret_set)(void* plugin, const char* key, const char* value);
+    int32_t (*secret_get)(void* plugin, const char* key, char* buf, uint32_t cap);
+    int (*secret_delete)(void* plugin, const char* key);
+} nocto_storage_v1;
+
+/* ---- network (TLS included). All completions are delivered on the UI thread. ---- */
+typedef struct nocto_http_request {
+    const char* method;      /* "GET", "POST", "PATCH", ... (NULL = GET) */
+    const char* url;         /* http:// or https:// */
+    const char* headers;     /* "Name: value\nName2: value2" (NULL = none) */
+    const void* body; uint32_t body_len;
+    uint32_t timeout_ms;     /* 0 = 20 s */
+} nocto_http_request;
+typedef struct nocto_http_response {
+    int32_t status;          /* HTTP status; 0 = transport error (see error) */
+    const char* error;       /* NULL when status != 0 */
+    const char* headers;     /* "name: value\n..." (names lower-cased) */
+    const char* body; uint32_t body_len;   /* NUL-terminated as well; valid only during the callback */
+} nocto_http_response;
+typedef void (*nocto_http_cb)(void* user, const nocto_http_response* r);
+typedef struct nocto_ws_events {
+    void (*on_open)(void* user);
+    void (*on_message)(void* user, const char* data, uint32_t len, int is_text);
+    void (*on_close)(void* user, int32_t code, const char* reason);   /* always delivered exactly once after ws_open succeeded (also on failure to connect: code 1006) */
+    void* user;
+} nocto_ws_events;
+typedef struct nocto_net_v1 {
+    uint32_t size;
+    uint64_t (*http_request)(void* plugin, const nocto_http_request* req, nocto_http_cb cb, void* user);   /* 0 = could not start */
+    void (*http_cancel)(void* plugin, uint64_t id);               /* the callback is not delivered afterwards */
+    uint64_t (*ws_open)(void* plugin, const char* url, const char* headers, const nocto_ws_events* ev);   /* ws:// or wss://; 0 = could not start */
+    int (*ws_send)(void* plugin, uint64_t id, const void* data, uint32_t len, int is_text);                /* 1 = queued */
+    void (*ws_close)(void* plugin, uint64_t id);
+} nocto_net_v1;
 
 typedef struct nocto_plugin_info {
     uint32_t abi;            /* set to NOCTO_PLUGIN_ABI */
@@ -758,5 +953,5 @@ typedef void (*nocto_plugin_unload_fn)(void);
 #endif /* NOCTO_PLUGIN_H */</code></pre></section>
 
 <div class="support"><b>Enjoying Nocto?</b> Plugin SDK, docs and app are made by one developer. <a class="btn" href="https://www.patreon.com/noctoapp" target="_blank" rel="noopener">Support on Patreon</a></div>
-<footer>Nocto &copy; 2026 Luke Roundy &middot; Plugin ABI 1 &middot; <a href="https://www.patreon.com/noctoapp" target="_blank" rel="noopener">Support on Patreon</a></footer></main></div>
+<footer>Nocto &copy; 2026 Luke Roundy &middot; Plugin ABI 2 &middot; <a href="https://www.patreon.com/noctoapp" target="_blank" rel="noopener">Support on Patreon</a></footer></main></div>
 <script src="assets/hl.js"></script></body></html>

@@ -20,12 +20,14 @@ details{color:var(--m);font-size:14px}summary{cursor:pointer;color:var(--v)}
 <div id="grid" class="grid"><p>Loading plugins&hellip;</p></div>
 <noscript><p>This list needs JavaScript. The raw list is <a href="plugins.json">plugins.json</a>.</p></noscript>
 <h2>How to install</h2>
+<p><b>In Nocto (next release, no terminal needed):</b> open <b>File &rsaquo; Plugins&hellip;</b>, then either press <b>Browse plugins&hellip;</b> (it loads this list, checks the download against its SHA-256 and installs it), or download a plugin's zip from here and press <b>Install from .zip&hellip;</b>. Nocto asks before installing, and the plugin is ready after you restart Nocto. <b>Remove</b> in the same window uninstalls plugins you installed.</p>
+<p><b>Current releases (0.7.3 and older), by hand:</b></p>
 <ol>
 <li>In Nocto open <b>File &rsaquo; Plugins&hellip;</b> and press <b>Open user plugins folder</b>.</li>
 <li>Copy the plugin's files (from the zip) into that folder. Windows: <code>%LOCALAPPDATA%\Nocto\plugins</code>. Linux: <code>~/.local/share/Nocto/plugins</code>.</li>
 <li>Enable the plugin in the Plugins window (or restart Nocto).</li>
 </ol>
-<p>Only install plugins you trust: native plugins run inside Nocto. Each download lists its SHA-256 so you can check the file.</p>
+<p>Only install plugins you trust: native plugins run inside Nocto with the same access to your PC. Each download lists its SHA-256 so you can check the file.</p>
 <h2>Make your own</h2>
 <div id="tools"></div>
 <p><a class="btn ghost" href="plugins.html">Plugin SDK documentation</a></p>
