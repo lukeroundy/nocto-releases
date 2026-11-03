@@ -1,8 +1,8 @@
 {
-  "version": "0.8.0",
-  "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.8.0/Nocto-Setup-0.8.0.exe",
-  "sha256": "574229456e8c139e6a660f78d7c69b0f948a80660249d593a89dfbeeb0651b60",
-  "notes": "Nocto 0.8.0: Twitch plugin, Plugin SDK 2 and the plugin library\n- New in-app plugin library (File > Plugins): install a plugin from a .zip with a file list and confirmation, or browse and install from the plugin list with a checksum check\n- Twitch plugin (separate download): sign in with a device code, edit stream title, category and tags, and a chat dock\n- Plugin SDK 1.1 (ABI 2): plugin docks and panels, menus, settings, secret storage, HTTPS and WebSocket; existing plugins keep working\n- Windows x64, Windows ARM64 and Linux x86_64 builds; Linux includes the 0.7.1 to 0.7.3 changes",
+  "version": "0.9.0",
+  "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.9.0/Nocto-Setup-0.9.0.exe",
+  "sha256": "74dff2106444087f461a46b5d0b31938510e1e16b464f9591a9262c389b67b22",
+  "notes": "Nocto 0.9.0\n- Multi-track audio recording with per-source track routing (Windows and Linux)\n- Scene transitions, Studio Mode and a live stream-health indicator\n- Blur and Pixelate source filters, plus a Pixelate effect in the editor\n- Clips and chapter markers; automatic loudness normalization\n- Export presets and vertical (9:16) canvas\n- Twitch chat overlay, color eyedropper, frame export, Discord plugin\n- Compact Controls panel and status bar; new UI scale setting\n- Fixed hardware encoder detection\n- Linux ARM: V4L2 hardware encoders (with software fallback)\n- New: Linux ARM64 (aarch64) AppImage",
   "min_version": "0.0.0",
   "platforms": {
     "windows-x64": {
@@ -10,12 +10,12 @@
       "arch": "x64",
       "os": "windows",
       "status": "available",
-      "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.8.0/Nocto-Setup-0.8.0.exe",
-      "sha256": "574229456e8c139e6a660f78d7c69b0f948a80660249d593a89dfbeeb0651b60",
+      "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.9.0/Nocto-Setup-0.9.0.exe",
+      "sha256": "74dff2106444087f461a46b5d0b31938510e1e16b464f9591a9262c389b67b22",
       "requirements": "Windows 10/11 x64",
-      "version": "0.8.0",
-      "notes": "Nocto 0.8.0: Twitch plugin, Plugin SDK 2 and the plugin library\n- New in-app plugin library (File > Plugins): install a plugin from a .zip with a file list and confirmation, or browse and install from the plugin list with a checksum check\n- Twitch plugin (separate download): sign in with a device code, edit stream title, category and tags, and a chat dock\n- Plugin SDK 1.1 (ABI 2): plugin docks and panels, menus, settings, secret storage, HTTPS and WebSocket; existing plugins keep working\n- Windows x64, Windows ARM64 and Linux x86_64 builds; Linux includes the 0.7.1 to 0.7.3 changes",
-      "size": 115039267
+      "version": "0.9.0",
+      "notes": "Nocto 0.9.0\n- Multi-track audio recording with per-source track routing (Windows and Linux)\n- Scene transitions, Studio Mode and a live stream-health indicator\n- Blur and Pixelate source filters, plus a Pixelate effect in the editor\n- Clips and chapter markers; automatic loudness normalization\n- Export presets and vertical (9:16) canvas\n- Twitch chat overlay, color eyedropper, frame export, Discord plugin\n- Compact Controls panel and status bar; new UI scale setting\n- Fixed hardware encoder detection\n- Linux ARM: V4L2 hardware encoders (with software fallback)\n- New: Linux ARM64 (aarch64) AppImage",
+      "size": 112773577
     },
     "windows-arm64": {
       "label": "Windows",
@@ -23,11 +23,11 @@
       "os": "windows",
       "status": "available",
       "requirements": "Windows 11 on ARM (Snapdragon)",
-      "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.8.0/Nocto-Setup-0.8.0-arm64.exe",
-      "sha256": "1d89c4172299a8f93bce74daf9b3f4664193ebbbfd0af69bbc246450f25b7897",
-      "version": "0.8.0",
-      "notes": "Nocto 0.8.0: Twitch plugin, Plugin SDK 2 and the plugin library\n- New in-app plugin library (File > Plugins): install a plugin from a .zip with a file list and confirmation, or browse and install from the plugin list with a checksum check\n- Twitch plugin (separate download): sign in with a device code, edit stream title, category and tags, and a chat dock\n- Plugin SDK 1.1 (ABI 2): plugin docks and panels, menus, settings, secret storage, HTTPS and WebSocket; existing plugins keep working\n- Windows x64, Windows ARM64 and Linux x86_64 builds; Linux includes the 0.7.1 to 0.7.3 changes",
-      "size": 115431106
+      "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.9.0/Nocto-Setup-0.9.0-arm64.exe",
+      "sha256": "a18bb4c1ab7dae14fd9d39479336fb18baa7a42bda8b6046afbd46954f504dbd",
+      "version": "0.9.0",
+      "notes": "Nocto 0.9.0\n- Multi-track audio recording with per-source track routing (Windows and Linux)\n- Scene transitions, Studio Mode and a live stream-health indicator\n- Blur and Pixelate source filters, plus a Pixelate effect in the editor\n- Clips and chapter markers; automatic loudness normalization\n- Export presets and vertical (9:16) canvas\n- Twitch chat overlay, color eyedropper, frame export, Discord plugin\n- Compact Controls panel and status bar; new UI scale setting\n- Fixed hardware encoder detection\n- Linux ARM: V4L2 hardware encoders (with software fallback)\n- New: Linux ARM64 (aarch64) AppImage",
+      "size": 109522226
     },
     "macos-arm64": {
       "label": "macOS",
@@ -40,14 +40,27 @@
       "arch": "x86_64",
       "os": "linux",
       "status": "available",
-      "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.8.0/Nocto-0.8.0-x86_64.AppImage",
-      "sha256": "12e178833b85d3bbfc26f450e89808bce2db2068f7d092daf35f0e1cfb76c600",
-      "size": 122313208,
+      "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.9.0/Nocto-0.9.0-x86_64.AppImage",
+      "sha256": "2795b3eb42b1638edd121a1c298dfc29bb4f15fd205baf1f74b381a9bf287872",
+      "size": 122907128,
       "requirements": "Linux x86_64 (Wayland or X11, PipeWire, Mesa 24+ or NVIDIA driver)",
-      "install": "<p><b>Install:</b> download the AppImage, then run <code>chmod +x Nocto-0.8.0-x86_64.AppImage</code> and start it with <code>./Nocto-0.8.0-x86_64.AppImage</code>.</p><p><b>Needs:</b> a Wayland or X11 desktop with PipeWire and xdg-desktop-portal, and your distribution's GPU drivers (Mesa 24+ for Intel/AMD, or the NVIDIA proprietary driver). Recommended: GStreamer plugins-base and plugins-good for browser source audio; the v4l2loopback camera driver for the virtual camera in Discord/Zoom (Nocto offers a one-click setup with your desktop's password dialog, no terminal needed). Updates install from inside Nocto (checksum verified, with automatic rollback); if you are on 0.7.2 or older, download this one manually once.</p>",
-      "version": "0.8.0",
-      "notes": "Nocto 0.8.0: Twitch plugin, Plugin SDK 2 and the plugin library\n- New in-app plugin library (File > Plugins): install a plugin from a .zip with a file list and confirmation, or browse and install from the plugin list with a checksum check\n- Twitch plugin (separate download): sign in with a device code, edit stream title, category and tags, and a chat dock\n- Plugin SDK 1.1 (ABI 2): plugin docks and panels, menus, settings, secret storage, HTTPS and WebSocket; existing plugins keep working\n- Windows x64, Windows ARM64 and Linux x86_64 builds; Linux includes the 0.7.1 to 0.7.3 changes"
+      "install": "<p><b>Install:</b> download the AppImage, then run <code>chmod +x Nocto-0.9.0-x86_64.AppImage</code> and start it with <code>./Nocto-0.9.0-x86_64.AppImage</code>.</p><p><b>Needs:</b> a Wayland or X11 desktop with PipeWire and xdg-desktop-portal, and your distribution's GPU drivers (Mesa 24+ for Intel/AMD, or the NVIDIA proprietary driver). Recommended: GStreamer plugins-base and plugins-good for browser source audio; the v4l2loopback camera driver for the virtual camera in Discord/Zoom (Nocto offers a one-click setup with your desktop's password dialog, no terminal needed). Updates install from inside Nocto (checksum verified, with automatic rollback); if you are on 0.7.2 or older, download this one manually once.</p>",
+      "version": "0.9.0",
+      "notes": "Nocto 0.9.0\n- Multi-track audio recording with per-source track routing (Windows and Linux)\n- Scene transitions, Studio Mode and a live stream-health indicator\n- Blur and Pixelate source filters, plus a Pixelate effect in the editor\n- Clips and chapter markers; automatic loudness normalization\n- Export presets and vertical (9:16) canvas\n- Twitch chat overlay, color eyedropper, frame export, Discord plugin\n- Compact Controls panel and status bar; new UI scale setting\n- Fixed hardware encoder detection\n- Linux ARM: V4L2 hardware encoders (with software fallback)\n- New: Linux ARM64 (aarch64) AppImage"
+    },
+    "linux-arm64": {
+      "label": "Linux",
+      "arch": "aarch64",
+      "os": "linux",
+      "status": "available",
+      "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.9.0/Nocto-0.9.0-aarch64.AppImage",
+      "sha256": "d522ea530a95ccfd944698952cb001dff9a1d005dd3dd1cf48e57dbd3d8ac5c9",
+      "size": 102619656,
+      "requirements": "Linux ARM64/aarch64 (Wayland, PipeWire, Mesa 24+)",
+      "install": "<p><b>Install:</b> download the AppImage, then run <code>chmod +x Nocto-0.9.0-aarch64.AppImage</code> and start it with <code>./Nocto-0.9.0-aarch64.AppImage</code>.</p><p><b>Needs:</b> a Wayland or X11 desktop with PipeWire and xdg-desktop-portal, and your distribution's GPU drivers (Mesa 24+ for Intel/AMD, or the NVIDIA proprietary driver). Recommended: GStreamer plugins-base and plugins-good for browser source audio; the v4l2loopback camera driver for the virtual camera in Discord/Zoom (Nocto offers a one-click setup with your desktop's password dialog, no terminal needed). Updates install from inside Nocto (checksum verified, with automatic rollback); if you are on 0.7.2 or older, download this one manually once.</p>",
+      "version": "0.9.0",
+      "notes": "Nocto 0.9.0\n- Multi-track audio recording with per-source track routing (Windows and Linux)\n- Scene transitions, Studio Mode and a live stream-health indicator\n- Blur and Pixelate source filters, plus a Pixelate effect in the editor\n- Clips and chapter markers; automatic loudness normalization\n- Export presets and vertical (9:16) canvas\n- Twitch chat overlay, color eyedropper, frame export, Discord plugin\n- Compact Controls panel and status bar; new UI scale setting\n- Fixed hardware encoder detection\n- Linux ARM: V4L2 hardware encoders (with software fallback)\n- New: Linux ARM64 (aarch64) AppImage"
     }
   },
-  "size": 115039267
+  "size": 112773577
 }
