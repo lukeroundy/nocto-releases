@@ -1,8 +1,8 @@
 {
-  "version": "0.9.0",
-  "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.9.0/Nocto-Setup-0.9.0.exe",
-  "sha256": "74dff2106444087f461a46b5d0b31938510e1e16b464f9591a9262c389b67b22",
-  "notes": "Nocto 0.9.0\n- Multi-track audio recording with per-source track routing (Windows and Linux)\n- Scene transitions, Studio Mode and a live stream-health indicator\n- Blur and Pixelate source filters, plus a Pixelate effect in the editor\n- Clips and chapter markers; automatic loudness normalization\n- Export presets and vertical (9:16) canvas\n- Twitch chat overlay, color eyedropper, frame export, Discord plugin\n- Compact Controls panel and status bar; new UI scale setting\n- Fixed hardware encoder detection\n- Linux ARM: V4L2 hardware encoders (with software fallback)\n- New: Linux ARM64 (aarch64) AppImage",
+  "version": "0.9.2",
+  "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.9.2/Nocto-Setup-0.9.2.exe",
+  "sha256": "efdedd7c165b4da05d4f351a483664b44c8f3cb6ed2bedf04d4cc7ee98bccff3",
+  "notes": "Nocto 0.9.2\n- New: pop out the Preview/Program into its own window or view it fullscreen on any monitor\n- Plugin library: Twitch and Discord now listed on ARM Linux\n- Includes the 0.9.1 Linux fixes (Snapdragon recordings, 4K export crash, HEVC/H.264 stutter)",
   "min_version": "0.0.0",
   "platforms": {
     "windows-x64": {
@@ -10,12 +10,12 @@
       "arch": "x64",
       "os": "windows",
       "status": "available",
-      "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.9.0/Nocto-Setup-0.9.0.exe",
-      "sha256": "74dff2106444087f461a46b5d0b31938510e1e16b464f9591a9262c389b67b22",
+      "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.9.2/Nocto-Setup-0.9.2.exe",
+      "sha256": "efdedd7c165b4da05d4f351a483664b44c8f3cb6ed2bedf04d4cc7ee98bccff3",
       "requirements": "Windows 10/11 x64",
-      "version": "0.9.0",
-      "notes": "Nocto 0.9.0\n- Multi-track audio recording with per-source track routing (Windows and Linux)\n- Scene transitions, Studio Mode and a live stream-health indicator\n- Blur and Pixelate source filters, plus a Pixelate effect in the editor\n- Clips and chapter markers; automatic loudness normalization\n- Export presets and vertical (9:16) canvas\n- Twitch chat overlay, color eyedropper, frame export, Discord plugin\n- Compact Controls panel and status bar; new UI scale setting\n- Fixed hardware encoder detection\n- Linux ARM: V4L2 hardware encoders (with software fallback)\n- New: Linux ARM64 (aarch64) AppImage",
-      "size": 112773577
+      "version": "0.9.2",
+      "notes": "Nocto 0.9.2\n- New: pop out the Preview/Program into its own window or view it fullscreen on any monitor\n- Plugin library: Twitch and Discord now listed on ARM Linux\n- Includes the 0.9.1 Linux fixes (Snapdragon recordings, 4K export crash, HEVC/H.264 stutter)",
+      "size": 112795131
     },
     "windows-arm64": {
       "label": "Windows",
@@ -23,11 +23,11 @@
       "os": "windows",
       "status": "available",
       "requirements": "Windows 11 on ARM (Snapdragon)",
-      "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.9.0/Nocto-Setup-0.9.0-arm64.exe",
-      "sha256": "a18bb4c1ab7dae14fd9d39479336fb18baa7a42bda8b6046afbd46954f504dbd",
-      "version": "0.9.0",
-      "notes": "Nocto 0.9.0\n- Multi-track audio recording with per-source track routing (Windows and Linux)\n- Scene transitions, Studio Mode and a live stream-health indicator\n- Blur and Pixelate source filters, plus a Pixelate effect in the editor\n- Clips and chapter markers; automatic loudness normalization\n- Export presets and vertical (9:16) canvas\n- Twitch chat overlay, color eyedropper, frame export, Discord plugin\n- Compact Controls panel and status bar; new UI scale setting\n- Fixed hardware encoder detection\n- Linux ARM: V4L2 hardware encoders (with software fallback)\n- New: Linux ARM64 (aarch64) AppImage",
-      "size": 109522226
+      "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.9.2/Nocto-Setup-0.9.2-arm64.exe",
+      "sha256": "d7056550dbac7652c7c98f31173d40b652fb21438b34bbc7ad06a6a4de4b4819",
+      "version": "0.9.2",
+      "notes": "Nocto 0.9.2\n- New: pop out the Preview/Program into its own window or view it fullscreen on any monitor\n- Plugin library: Twitch and Discord now listed on ARM Linux\n- Includes the 0.9.1 Linux fixes (Snapdragon recordings, 4K export crash, HEVC/H.264 stutter)",
+      "size": 109530514
     },
     "macos-arm64": {
       "label": "macOS",
@@ -40,27 +40,27 @@
       "arch": "x86_64",
       "os": "linux",
       "status": "available",
-      "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.9.1/Nocto-0.9.1-x86_64.AppImage",
-      "sha256": "03acd16bd8bbcd0bb1af8b6e9a528d638802e6d23690cbe9cee5f66120cc2407",
-      "size": 122911224,
+      "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.9.2/Nocto-0.9.2-x86_64.AppImage",
+      "sha256": "01dce73857bb1657d143cd698a1665d042df12abb405a67d860443fca252743b",
+      "size": 122927608,
       "requirements": "Linux x86_64 (Wayland or X11, PipeWire, Mesa 24+ or NVIDIA driver)",
-      "install": "<p><b>Install:</b> download the AppImage, then run <code>chmod +x Nocto-0.9.1-x86_64.AppImage</code> and start it with <code>./Nocto-0.9.1-x86_64.AppImage</code>.</p><p><b>Needs:</b> a Wayland or X11 desktop with PipeWire and xdg-desktop-portal, and your distribution's GPU drivers (Mesa 24+ for Intel/AMD, or the NVIDIA proprietary driver). Recommended: GStreamer plugins-base and plugins-good for browser source audio; the v4l2loopback camera driver for the virtual camera in Discord/Zoom (Nocto offers a one-click setup with your desktop's password dialog, no terminal needed). Updates install from inside Nocto (checksum verified, with automatic rollback); if you are on 0.7.2 or older, download this one manually once.</p>",
-      "version": "0.9.1",
-      "notes": "Nocto 0.9.1 (Linux hotfix)\n- Snapdragon (V4L2) hardware recordings on ARM Linux are playable again\n- Fixed a crash when exporting with the YouTube 4K preset / Auto encoder (software fallback with a clear message)\n- Fixed stutter in hardware-encoded HEVC/H.264 recordings"
+      "install": "<p><b>Install:</b> download the AppImage, then run <code>chmod +x Nocto-0.9.2-x86_64.AppImage</code> and start it with <code>./Nocto-0.9.2-x86_64.AppImage</code>.</p><p><b>Needs:</b> a Wayland or X11 desktop with PipeWire and xdg-desktop-portal, and your distribution's GPU drivers (Mesa 24+ for Intel/AMD, or the NVIDIA proprietary driver). Recommended: GStreamer plugins-base and plugins-good for browser source audio; the v4l2loopback camera driver for the virtual camera in Discord/Zoom (Nocto offers a one-click setup with your desktop's password dialog, no terminal needed). Updates install from inside Nocto (checksum verified, with automatic rollback); if you are on 0.7.2 or older, download this one manually once.</p>",
+      "version": "0.9.2",
+      "notes": "Nocto 0.9.2\n- New: pop out the Preview/Program into its own window or view it fullscreen on any monitor\n- Plugin library: Twitch and Discord now listed on ARM Linux\n- Includes the 0.9.1 Linux fixes (Snapdragon recordings, 4K export crash, HEVC/H.264 stutter)"
     },
     "linux-arm64": {
       "label": "Linux",
       "arch": "aarch64",
       "os": "linux",
       "status": "available",
-      "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.9.1/Nocto-0.9.1-aarch64.AppImage",
-      "sha256": "aa38395907f89dd8901e939f06e5cae3fc9b85f8acbb47dd067ab1b3454b470d",
-      "size": 102623752,
+      "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.9.2/Nocto-0.9.2-aarch64.AppImage",
+      "sha256": "8d498f730cba29cfbed8eb786bcae052f5b989781a07924d1083249f03a302e6",
+      "size": 102631944,
       "requirements": "Linux ARM64/aarch64 (Wayland, PipeWire, Mesa 24+)",
-      "install": "<p><b>Install:</b> download the AppImage, then run <code>chmod +x Nocto-0.9.1-aarch64.AppImage</code> and start it with <code>./Nocto-0.9.1-aarch64.AppImage</code>.</p><p><b>Needs:</b> a Wayland or X11 desktop with PipeWire and xdg-desktop-portal, and your distribution's GPU drivers (Mesa 24+ for Intel/AMD, or the NVIDIA proprietary driver). Recommended: GStreamer plugins-base and plugins-good for browser source audio; the v4l2loopback camera driver for the virtual camera in Discord/Zoom (Nocto offers a one-click setup with your desktop's password dialog, no terminal needed). Updates install from inside Nocto (checksum verified, with automatic rollback); if you are on 0.7.2 or older, download this one manually once.</p>",
-      "version": "0.9.1",
-      "notes": "Nocto 0.9.1 (Linux hotfix)\n- Snapdragon (V4L2) hardware recordings on ARM Linux are playable again\n- Fixed a crash when exporting with the YouTube 4K preset / Auto encoder (software fallback with a clear message)\n- Fixed stutter in hardware-encoded HEVC/H.264 recordings"
+      "install": "<p><b>Install:</b> download the AppImage, then run <code>chmod +x Nocto-0.9.2-aarch64.AppImage</code> and start it with <code>./Nocto-0.9.2-aarch64.AppImage</code>.</p><p><b>Needs:</b> a Wayland or X11 desktop with PipeWire and xdg-desktop-portal, and your distribution's GPU drivers (Mesa 24+ for Intel/AMD, or the NVIDIA proprietary driver). Recommended: GStreamer plugins-base and plugins-good for browser source audio; the v4l2loopback camera driver for the virtual camera in Discord/Zoom (Nocto offers a one-click setup with your desktop's password dialog, no terminal needed). Updates install from inside Nocto (checksum verified, with automatic rollback); if you are on 0.7.2 or older, download this one manually once.</p>",
+      "version": "0.9.2",
+      "notes": "Nocto 0.9.2\n- New: pop out the Preview/Program into its own window or view it fullscreen on any monitor\n- Plugin library: Twitch and Discord now listed on ARM Linux\n- Includes the 0.9.1 Linux fixes (Snapdragon recordings, 4K export crash, HEVC/H.264 stutter)"
     }
   },
-  "size": 112773577
+  "size": 112795131
 }
