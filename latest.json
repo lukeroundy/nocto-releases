@@ -1,8 +1,8 @@
 {
-  "version": "0.9.2",
-  "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.9.2/Nocto-Setup-0.9.2.exe",
-  "sha256": "efdedd7c165b4da05d4f351a483664b44c8f3cb6ed2bedf04d4cc7ee98bccff3",
-  "notes": "Nocto 0.9.2\n- New: pop out the Preview/Program into its own window or view it fullscreen on any monitor\n- Plugin library: Twitch and Discord now listed on ARM Linux\n- Includes the 0.9.1 Linux fixes (Snapdragon recordings, 4K export crash, HEVC/H.264 stutter)",
+  "version": "0.9.3",
+  "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.9.3/Nocto-Setup-0.9.3.exe",
+  "sha256": "8a99a9332269ba50f50418e66e64ad98bce62632d0b5cd39e0342941af847da2",
+  "notes": "Nocto 0.9.3\n- Capture cards: the card's own audio device is now matched reliably and picked automatically when you tick Capture audio\n- A warning shows when no audio device is chosen for a capture card, or the chosen one is unplugged\n- Windows: more detailed audio capture logging to help track down devices that record no sound",
   "min_version": "0.0.0",
   "platforms": {
     "windows-x64": {
@@ -10,12 +10,12 @@
       "arch": "x64",
       "os": "windows",
       "status": "available",
-      "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.9.2/Nocto-Setup-0.9.2.exe",
-      "sha256": "efdedd7c165b4da05d4f351a483664b44c8f3cb6ed2bedf04d4cc7ee98bccff3",
+      "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.9.3/Nocto-Setup-0.9.3.exe",
+      "sha256": "8a99a9332269ba50f50418e66e64ad98bce62632d0b5cd39e0342941af847da2",
       "requirements": "Windows 10/11 x64",
-      "version": "0.9.2",
-      "notes": "Nocto 0.9.2\n- New: pop out the Preview/Program into its own window or view it fullscreen on any monitor\n- Plugin library: Twitch and Discord now listed on ARM Linux\n- Includes the 0.9.1 Linux fixes (Snapdragon recordings, 4K export crash, HEVC/H.264 stutter)",
-      "size": 112795131
+      "version": "0.9.3",
+      "notes": "Nocto 0.9.3\n- Capture cards: the card's own audio device is now matched reliably and picked automatically when you tick Capture audio\n- A warning shows when no audio device is chosen for a capture card, or the chosen one is unplugged\n- Windows: more detailed audio capture logging to help track down devices that record no sound",
+      "size": 112789444
     },
     "windows-arm64": {
       "label": "Windows",
@@ -23,11 +23,11 @@
       "os": "windows",
       "status": "available",
       "requirements": "Windows 11 on ARM (Snapdragon)",
-      "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.9.2/Nocto-Setup-0.9.2-arm64.exe",
-      "sha256": "d7056550dbac7652c7c98f31173d40b652fb21438b34bbc7ad06a6a4de4b4819",
-      "version": "0.9.2",
-      "notes": "Nocto 0.9.2\n- New: pop out the Preview/Program into its own window or view it fullscreen on any monitor\n- Plugin library: Twitch and Discord now listed on ARM Linux\n- Includes the 0.9.1 Linux fixes (Snapdragon recordings, 4K export crash, HEVC/H.264 stutter)",
-      "size": 109530514
+      "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.9.3/Nocto-Setup-0.9.3-arm64.exe",
+      "sha256": "4396cc3d58f8871c2dc42bedbc1cf818c5e869ad8397e6a64b012be957363a26",
+      "version": "0.9.3",
+      "notes": "Nocto 0.9.3\n- Capture cards: the card's own audio device is now matched reliably and picked automatically when you tick Capture audio\n- A warning shows when no audio device is chosen for a capture card, or the chosen one is unplugged\n- Windows: more detailed audio capture logging to help track down devices that record no sound",
+      "size": 109535100
     },
     "macos-arm64": {
       "label": "macOS",
@@ -40,27 +40,27 @@
       "arch": "x86_64",
       "os": "linux",
       "status": "available",
-      "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.9.2/Nocto-0.9.2-x86_64.AppImage",
-      "sha256": "01dce73857bb1657d143cd698a1665d042df12abb405a67d860443fca252743b",
+      "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.9.3/Nocto-0.9.3-x86_64.AppImage",
+      "sha256": "7ff908b8a11b0a55d94a5f019925614fd19cbfd1271e652547a31c537602ea19",
       "size": 122927608,
       "requirements": "Linux x86_64 (Wayland or X11, PipeWire, Mesa 24+ or NVIDIA driver)",
-      "install": "<p><b>Install:</b> download the AppImage, then run <code>chmod +x Nocto-0.9.2-x86_64.AppImage</code> and start it with <code>./Nocto-0.9.2-x86_64.AppImage</code>.</p><p><b>Needs:</b> a Wayland or X11 desktop with PipeWire and xdg-desktop-portal, and your distribution's GPU drivers (Mesa 24+ for Intel/AMD, or the NVIDIA proprietary driver). Recommended: GStreamer plugins-base and plugins-good for browser source audio; the v4l2loopback camera driver for the virtual camera in Discord/Zoom (Nocto offers a one-click setup with your desktop's password dialog, no terminal needed). Updates install from inside Nocto (checksum verified, with automatic rollback); if you are on 0.7.2 or older, download this one manually once.</p>",
-      "version": "0.9.2",
-      "notes": "Nocto 0.9.2\n- New: pop out the Preview/Program into its own window or view it fullscreen on any monitor\n- Plugin library: Twitch and Discord now listed on ARM Linux\n- Includes the 0.9.1 Linux fixes (Snapdragon recordings, 4K export crash, HEVC/H.264 stutter)"
+      "install": "<p><b>Install:</b> download the AppImage, then run <code>chmod +x Nocto-0.9.3-x86_64.AppImage</code> and start it with <code>./Nocto-0.9.3-x86_64.AppImage</code>.</p><p><b>Needs:</b> a Wayland or X11 desktop with PipeWire and xdg-desktop-portal, and your distribution's GPU drivers (Mesa 24+ for Intel/AMD, or the NVIDIA proprietary driver). Recommended: GStreamer plugins-base and plugins-good for browser source audio; the v4l2loopback camera driver for the virtual camera in Discord/Zoom (Nocto offers a one-click setup with your desktop's password dialog, no terminal needed). Updates install from inside Nocto (checksum verified, with automatic rollback); if you are on 0.7.2 or older, download this one manually once.</p>",
+      "version": "0.9.3",
+      "notes": "Nocto 0.9.3\n- Capture cards: the card's own audio device is now matched reliably and picked automatically when you tick Capture audio\n- A warning shows when no audio device is chosen for a capture card, or the chosen one is unplugged\n- Windows: more detailed audio capture logging to help track down devices that record no sound"
     },
     "linux-arm64": {
       "label": "Linux",
       "arch": "aarch64",
       "os": "linux",
       "status": "available",
-      "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.9.2/Nocto-0.9.2-aarch64.AppImage",
-      "sha256": "8d498f730cba29cfbed8eb786bcae052f5b989781a07924d1083249f03a302e6",
+      "url": "https://github.com/lukeroundy/nocto-releases/releases/download/v0.9.3/Nocto-0.9.3-aarch64.AppImage",
+      "sha256": "53d25d588bfca87d81b5c30f667c0e1dd65437da616b97e33f41c5720f4d8597",
       "size": 102631944,
       "requirements": "Linux ARM64/aarch64 (Wayland, PipeWire, Mesa 24+)",
-      "install": "<p><b>Install:</b> download the AppImage, then run <code>chmod +x Nocto-0.9.2-aarch64.AppImage</code> and start it with <code>./Nocto-0.9.2-aarch64.AppImage</code>.</p><p><b>Needs:</b> a Wayland or X11 desktop with PipeWire and xdg-desktop-portal, and your distribution's GPU drivers (Mesa 24+ for Intel/AMD, or the NVIDIA proprietary driver). Recommended: GStreamer plugins-base and plugins-good for browser source audio; the v4l2loopback camera driver for the virtual camera in Discord/Zoom (Nocto offers a one-click setup with your desktop's password dialog, no terminal needed). Updates install from inside Nocto (checksum verified, with automatic rollback); if you are on 0.7.2 or older, download this one manually once.</p>",
-      "version": "0.9.2",
-      "notes": "Nocto 0.9.2\n- New: pop out the Preview/Program into its own window or view it fullscreen on any monitor\n- Plugin library: Twitch and Discord now listed on ARM Linux\n- Includes the 0.9.1 Linux fixes (Snapdragon recordings, 4K export crash, HEVC/H.264 stutter)"
+      "install": "<p><b>Install:</b> download the AppImage, then run <code>chmod +x Nocto-0.9.3-aarch64.AppImage</code> and start it with <code>./Nocto-0.9.3-aarch64.AppImage</code>.</p><p><b>Needs:</b> a Wayland or X11 desktop with PipeWire and xdg-desktop-portal, and your distribution's GPU drivers (Mesa 24+ for Intel/AMD, or the NVIDIA proprietary driver). Recommended: GStreamer plugins-base and plugins-good for browser source audio; the v4l2loopback camera driver for the virtual camera in Discord/Zoom (Nocto offers a one-click setup with your desktop's password dialog, no terminal needed). Updates install from inside Nocto (checksum verified, with automatic rollback); if you are on 0.7.2 or older, download this one manually once.</p>",
+      "version": "0.9.3",
+      "notes": "Nocto 0.9.3\n- Capture cards: the card's own audio device is now matched reliably and picked automatically when you tick Capture audio\n- A warning shows when no audio device is chosen for a capture card, or the chosen one is unplugged\n- Windows: more detailed audio capture logging to help track down devices that record no sound"
     }
   },
-  "size": 112795131
+  "size": 112789444
 }
